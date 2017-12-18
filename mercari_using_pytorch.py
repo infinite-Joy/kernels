@@ -75,5 +75,24 @@ print(632682/train_df.shape[0])
 
 # In[*]
 
-train_df.drop(['brand_name'], axis=1)
+train_df = train_df.drop(['brand_name'], axis=1)
+test_df = test_df.drop(['brand_name'], axis=1)
+
+
+# In[*]
+
+train_df[train_df.isnull().any(axis=1)]
+
+
+# In[*]
+
+value_list = ['iPhone']
+train_df[train_df.name.isin(value_list)]
+
+
+# For the missing category names we should try to find some unsupervised learning so that some amount filling of the data should be present.
+
+# In[*]
+
+
 
