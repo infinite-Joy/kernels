@@ -144,6 +144,34 @@ combined_df['category_name'] = combined_df['category_name'].apply(lambda x: spli
 train_df.head()
 
 
+# now we know that there are 5 categories so we will try to find the unknown ones category per category. so we will make predictions based on the 5 categories
+
+# ### Running category encoding on the first category
+
+# In[*]
+
+combined_cat1_list = [x[0] for x in combined_df['category_name'].tolist()]
+combined_cat1_list[:5]
+
+
+# In[*]
+
+cat1_le = LabelEncoder()
+cat1_le.fit(combined_cat1_list)
+
+
+# In[*]
+
+cat1_le.transform(['Men', 'Electronics', 'Women', 'Home', 'Women'])
+
+
+# In[*]
+
+cat1_le.inverse_transform([ 5,  1, 10,  3, 10])
+
+
+# Thus we are able to build a label encoder state space for the first category
+
 # In[*]
 
 
@@ -152,6 +180,21 @@ train_df.head()
 # In[*]
 
 
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+train_df[train_df.isnull().any(axis=1)]
 
 
 # In[*]
@@ -184,6 +227,51 @@ print(train_df.columns.tolist())
 
 # In[*]
 
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
 from copy import deepcopy
 category_df = deepcopy(train_df)
 
@@ -200,7 +288,6 @@ category_df.sample(2)
 
 # In[*]
 
-# predict_category_df = category_df[category_df.isnull().any(axis=1)]
 predict_category_df = category_df[pd.isnull(category_df['category_name'])]
 train_test_categry_df = category_df[pd.notnull(category_df['category_name'])]
 train_categry_df, test_categry_df = train_test_split(train_test_categry_df, test_size=0.2, random_state=42)
