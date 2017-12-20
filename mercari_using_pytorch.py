@@ -121,19 +121,32 @@ combined_df.iloc[[index_whr_max_categories]]
 
 # In[*]
 
+def split_cat(text, max_num_of_categories):
+    return_val = ["None"] * max_num_of_categories
+    try:
+        text_list = text.split("/") + return_val
+        return text_list[:max_num_of_categories]
+    except:
+        return return_val
 
+
+# Change the category name for train and test and total dataframes
+
+# In[*]
+
+train_df['category_name'] = train_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+test_df['category_name'] = test_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+combined_df['category_name'] = combined_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+
+
+# In[*]
+
+train_df.head()
 
 
 # In[*]
 
 
-
-
-# In[*]
-
-def split_cat(text):
-    try: return text.split("/")
-    except: return ("None", "None", "None")
 
 
 # In[*]
@@ -215,7 +228,7 @@ print(X_train_category_df.shape, y_train_category_df.shape, X_test_category_df.s
 
 # In[*]
 
-y_train_category_df
+y_train_category_df.head()
 
 
 # In[*]
