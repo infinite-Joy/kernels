@@ -19,7 +19,7 @@ import torch.nn.functional as F
 
 import numpy as np
 import pandas as pd
-import time
+from time import time
 
 
 # In[*]
@@ -29,6 +29,7 @@ import matplotlib.gridspec as gridspec
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 import math
 
 
@@ -151,7 +152,7 @@ train_df.head()
 # In[*]
 
 combined_cat1_list = [x[0] for x in combined_df['category_name'].tolist()]
-combined_cat1_list[:5]
+combined_cat1_list = [x for x in combined_cat1_list if not x == 'None']
 
 
 # In[*]
@@ -167,35 +168,48 @@ cat1_le.transform(['Men', 'Electronics', 'Women', 'Home', 'Women'])
 
 # In[*]
 
-cat1_le.inverse_transform([ 5,  1, 10,  3, 10])
+cat1_le.inverse_transform([5, 1, 9, 3, 9])
 
 
 # Thus we are able to build a label encoder state space for the first category
 
 # In[*]
 
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
+def convert_catname_cat1(le, catlist):
+    try:
+        return le.transform(catlist[:1])[0]
+    except:
+        return np.nan
 
 
 # In[*]
 
-
+train_df['category_name'] = train_df['category_name'].apply(lambda x: convert_catname_cat1(cat1_le, x))
 
 
 # In[*]
 
-train_df[train_df.isnull().any(axis=1)]
+train_df.head()
 
+
+# There are some null values in item description so will need to make fill them
+
+# In[*]
+
+train_df[train_df['item_description'].isnull()]
+
+
+# In[*]
+
+train_df['item_description'] = train_df['item_description'].fillna("")
+
+
+# In[*]
+
+train_df[train_df['item_description'].isnull()]
+
+
+# No null values in item description
 
 # In[*]
 
@@ -221,53 +235,6 @@ train_df[train_df.name.isin(value_list)]
 # In[*]
 
 print(train_df.columns.tolist())
-
-
-# 
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
-
-
-# In[*]
-
-
 
 
 # In[*]
@@ -298,6 +265,11 @@ print(predict_category_df.shape[0] + train_categry_df.shape[0] + test_categry_df
 
 # In[*]
 
+predict_category_df.head()
+
+
+# In[*]
+
 X_train_category_df = train_categry_df[['name', 'item_description']]
 y_train_category_df = train_categry_df[['category_name']]
 X_test_category_df = test_categry_df[['name', 'item_description']]
@@ -306,7 +278,95 @@ print('separate to x and y')
 print(X_train_category_df.shape, y_train_category_df.shape, X_test_category_df.shape, y_test_category_df.shape)
 
 
-# category names are based on parent -> sub category -> subcategory etc. Need to find how many categories are there.
+# Combine the name and item_description
+
+# In[*]
+
+X_train_category_df.head()
+
+
+# In[*]
+
+X_train_category_df['total_text'] = X_train_category_df['name'] + " " +  X_train_category_df['item_description']
+X_train_category_df.head()
+
+
+# In[*]
+
+print('Extracting features from the training data using a sparse vectorizer')
+t0 = time()
+vectorizer = TfidfVectorizer(sublinear_tf=True, max_df=0.5, stop_words='english')
+x_train = vectorizer.fit_transform(X_train_category_df['total_text'])
+duration = time() - t0
+print("done in %fs" % (duration))    
+print("n_samples: %d, n_features: %d" % x_train.shape)
+print()
+
+
+# In[*]
+
+feature_names = vectorizer.get_feature_names()
+
+
+# In[*]
+
+# #############################################################################  
+# Benchmark classifiers                                                          
+def benchmark(clf):                                                              
+    print('_' * 80)                                                              
+    print("Training: ")                                                          
+    print(clf)                                                                   
+    t0 = time()                                                                  
+    clf.fit(X_train, y_train)                                                    
+    train_time = time() - t0                                                     
+    print("train time: %0.3fs" % train_time)                                     
+                                                                                 
+    t0 = time()                                                                  
+    pred = clf.predict(X_test)                                                   
+    test_time = time() - t0                                                      
+    print("test time:  %0.3fs" % test_time)                                      
+                                                                                 
+    score = metrics.accuracy_score(y_test, pred)                                 
+    print("accuracy:   %0.3f" % score)                                           
+                                                                                 
+    if hasattr(clf, 'coef_'):                                                    
+        print("dimensionality: %d" % clf.coef_.shape[1])                         
+        print("density: %f" % density(clf.coef_))                                
+                                                                                 
+        if opts.print_top10 and feature_names is not None:                       
+            print("top 10 keywords per class:")                                  
+            for i, label in enumerate(target_names):                             
+                top10 = np.argsort(clf.coef_[i])[-10:]                           
+                print(trim("%s: %s" % (label, " ".join(feature_names[top10]))))  
+        print()                                                                  
+                                                                                 
+    if opts.print_report:                                                        
+        print("classification report:")                                          
+        print(metrics.classification_report(y_test, pred,                        
+                                            target_names=target_names))          
+                                                                                 
+    if opts.print_cm:                                                            
+        print("confusion matrix:")                                               
+        print(metrics.confusion_matrix(y_test, pred))                            
+                                                                                 
+    print()                                                                      
+    clf_descr = str(clf).split('(')[0]                                           
+    return clf_descr, score, train_time, test_time 
+
+
+# In[*]
+
+results = []                                                                     
+for clf, name in (                                                            
+        (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),          
+        (Perceptron(n_iter=50), "Perceptron"),                                   
+        (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),          
+        (KNeighborsClassifier(n_neighbors=10), "kNN"),                           
+        (RandomForestClassifier(n_estimators=100), "Random forest")):            
+    print('=' * 80)                                                              
+    print(name)                                                                  
+    results.append(benchmark(clf)) 
+
 
 # In[*]
 
