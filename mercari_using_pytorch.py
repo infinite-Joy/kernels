@@ -30,6 +30,18 @@ import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectFromModel
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import PassiveAggressiveClassifier
+from sklearn.linear_model import RidgeClassifier
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import NearestCentroid
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.utils.extmath import density
 import math
 
 
@@ -278,6 +290,16 @@ print('separate to x and y')
 print(X_train_category_df.shape, y_train_category_df.shape, X_test_category_df.shape, y_test_category_df.shape)
 
 
+# In[*]
+
+y_train_category_df.head()
+
+
+# In[*]
+
+y_test_category_df.head()
+
+
 # Combine the name and item_description
 
 # In[*]
@@ -289,6 +311,12 @@ X_train_category_df.head()
 
 X_train_category_df['total_text'] = X_train_category_df['name'] + " " +  X_train_category_df['item_description']
 X_train_category_df.head()
+
+
+# In[*]
+
+X_test_category_df['total_text'] = X_test_category_df['name'] + " " +  X_test_category_df['item_description']
+X_test_category_df.head()
 
 
 # In[*]
@@ -305,6 +333,17 @@ print()
 
 # In[*]
 
+print('Extracting features from the testing data using a sparse vectorizer')
+t0 = time()
+x_test = vectorizer.transform(X_test_category_df['total_text'])
+duration = time() - t0
+print("done in %fs" % (duration))    
+print("n_samples: %d, n_features: %d" % x_train.shape)
+print()
+
+
+# In[*]
+
 feature_names = vectorizer.get_feature_names()
 
 
@@ -312,42 +351,39 @@ feature_names = vectorizer.get_feature_names()
 
 # #############################################################################  
 # Benchmark classifiers                                                          
-def benchmark(clf):                                                              
-    print('_' * 80)                                                              
-    print("Training: ")                                                          
-    print(clf)                                                                   
-    t0 = time()                                                                  
-    clf.fit(X_train, y_train)                                                    
-    train_time = time() - t0                                                     
-    print("train time: %0.3fs" % train_time)                                     
-                                                                                 
-    t0 = time()                                                                  
-    pred = clf.predict(X_test)                                                   
-    test_time = time() - t0                                                      
-    print("test time:  %0.3fs" % test_time)                                      
-                                                                                 
-    score = metrics.accuracy_score(y_test, pred)                                 
-    print("accuracy:   %0.3f" % score)                                           
+def benchmark(clf, X_train, y_train, X_test, y_test, target_names):                                                              
+    print('_' * 80)
+    print("Training: ")
+    print(clf)
+    t0 = time()
+    clf.fit(X_train, y_train)
+    train_time = time() - t0
+    print("train time: %0.3fs" % train_time)
+
+    t0 = time()
+    pred = clf.predict(X_test)
+    test_time = time() - t0
+    print("test time:  %0.3fs" % test_time)
+
+    score = metrics.accuracy_score(y_test, pred)
+    print("accuracy:   %0.3f" % score)
                                                                                  
     if hasattr(clf, 'coef_'):                                                    
-        print("dimensionality: %d" % clf.coef_.shape[1])                         
-        print("density: %f" % density(clf.coef_))                                
+        print("dimensionality: %d" % clf.coef_.shape[1])
+        print("density: %f" % density(clf.coef_))
                                                                                  
-        if opts.print_top10 and feature_names is not None:                       
+        if feature_names is not None:                       
             print("top 10 keywords per class:")                                  
             for i, label in enumerate(target_names):                             
-                top10 = np.argsort(clf.coef_[i])[-10:]                           
-                print(trim("%s: %s" % (label, " ".join(feature_names[top10]))))  
-        print()                                                                  
+                top10 = np.argsort(clf.coef_[i])[-10:]
+                print(trim("%s: %s" % (label, " ".join(feature_names[top10]))))
+        print()
                                                                                  
-    if opts.print_report:                                                        
-        print("classification report:")                                          
-        print(metrics.classification_report(y_test, pred,                        
-                                            target_names=target_names))          
+    print("classification report:")
+    print(metrics.classification_report(y_test, pred, target_names=target_names))          
                                                                                  
-    if opts.print_cm:                                                            
-        print("confusion matrix:")                                               
-        print(metrics.confusion_matrix(y_test, pred))                            
+    print("confusion matrix:")
+    print(metrics.confusion_matrix(y_test, pred))                            
                                                                                  
     print()                                                                      
     clf_descr = str(clf).split('(')[0]                                           
@@ -365,7 +401,7 @@ for clf, name in (
         (RandomForestClassifier(n_estimators=100), "Random forest")):            
     print('=' * 80)                                                              
     print(name)                                                                  
-    results.append(benchmark(clf)) 
+    results.append(benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df)) 
 
 
 # In[*]
