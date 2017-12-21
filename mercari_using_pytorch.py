@@ -40,8 +40,10 @@ from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import NearestCentroid
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.utils.extmath import density
+from sklearn import metrics
 import math
 
 
@@ -298,6 +300,7 @@ y_train_category_df.head()
 # In[*]
 
 y_test_category_df.head()
+print(y_)
 
 
 # Combine the name and item_description
@@ -351,7 +354,7 @@ feature_names = vectorizer.get_feature_names()
 
 # #############################################################################  
 # Benchmark classifiers                                                          
-def benchmark(clf, X_train, y_train, X_test, y_test, target_names):                                                              
+def fit_and_benchmark(clf, X_train, y_train, X_test, y_test, target_names):                                                              
     print('_' * 80)
     print("Training: ")
     print(clf)
@@ -376,7 +379,6 @@ def benchmark(clf, X_train, y_train, X_test, y_test, target_names):
             print("top 10 keywords per class:")                                  
             for i, label in enumerate(target_names):                             
                 top10 = np.argsort(clf.coef_[i])[-10:]
-                print(trim("%s: %s" % (label, " ".join(feature_names[top10]))))
         print()
                                                                                  
     print("classification report:")
@@ -392,21 +394,22 @@ def benchmark(clf, X_train, y_train, X_test, y_test, target_names):
 
 # In[*]
 
-results = []                                                                     
-for clf, name in (                                                            
-        (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),          
-        (Perceptron(n_iter=50), "Perceptron"),                                   
-        (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),          
-        (KNeighborsClassifier(n_neighbors=10), "kNN"),                           
-        (RandomForestClassifier(n_estimators=100), "Random forest")):            
-    print('=' * 80)                                                              
-    print(name)                                                                  
-    results.append(benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df)) 
+clf = VotingClassier(estimators=[
+    ('rc', RidgeClassifier(tol=1e-2)),
+    ('perc', Perceptron(n_iter=50)),
+    ('pa', PassiveAggressiveClassifier(n_iter=50)),
+    ('knn', KNeighborsClassifier(n_neighbors=len(cat1_le.classes_))),
+    ('rfc', RandomForestClassifier(n_estimators=100)),
+    ('sgd', SGDClassifier(alpha=.0001, n_iter=50, penalty="elasticnet")),
+    ('SVC_with_L1', Pipeline([
+        ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))),
+        ('classification', LinearSVC(penalty="l2"))]))
+]
 
 
 # In[*]
 
-
+fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, cat1_le.classes_)
 
 
 # In[*]
@@ -416,7 +419,7 @@ y_train_category_df.head()
 
 # In[*]
 
-
+len(cat1_le.classes_)
 
 
 # In[*]
