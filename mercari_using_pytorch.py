@@ -1,7 +1,11 @@
 
 # coding: utf-8
 
-# link: https://www.kaggle.com/kswamy15/mercari-using-pytorch
+# References:
+# 
+# https://www.kaggle.com/kswamy15/mercari-using-pytorch
+# 
+# http://scikit-learn.org/stable/modules/ensemble.html
 
 # In[*]
 
@@ -42,6 +46,7 @@ from sklearn.neighbors import NearestCentroid
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import VotingClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 from sklearn.utils.extmath import density
 from sklearn import metrics
 import math
@@ -300,7 +305,6 @@ y_train_category_df.head()
 # In[*]
 
 y_test_category_df.head()
-print(y_)
 
 
 # Combine the name and item_description
@@ -394,17 +398,22 @@ def fit_and_benchmark(clf, X_train, y_train, X_test, y_test, target_names):
 
 # In[*]
 
-clf = VotingClassier(estimators=[
+# clf = VotingClassifier(estimators=[
+#     ('rc', RidgeClassifier(tol=1e-2)),
+#     ('perc', Perceptron(n_iter=50)),
+#     ('pa', PassiveAggressiveClassifier(n_iter=50)),
+#     ('knn', KNeighborsClassifier(n_neighbors=len(cat1_le.classes_))),
+#     ('rfc', RandomForestClassifier(n_estimators=100)),
+#     ('sgd', SGDClassifier(alpha=.0001, n_iter=50, penalty="elasticnet")),
+#     ('SVC_with_L1', Pipeline([
+#         ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))),
+#         ('classification', LinearSVC(penalty="l2"))]))
+# ])
+clf = VotingClassifier(estimators=[
     ('rc', RidgeClassifier(tol=1e-2)),
     ('perc', Perceptron(n_iter=50)),
-    ('pa', PassiveAggressiveClassifier(n_iter=50)),
-    ('knn', KNeighborsClassifier(n_neighbors=len(cat1_le.classes_))),
-    ('rfc', RandomForestClassifier(n_estimators=100)),
-    ('sgd', SGDClassifier(alpha=.0001, n_iter=50, penalty="elasticnet")),
-    ('SVC_with_L1', Pipeline([
-        ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))),
-        ('classification', LinearSVC(penalty="l2"))]))
-]
+    ('pa', PassiveAggressiveClassifier(n_iter=50))
+])
 
 
 # In[*]
