@@ -423,6 +423,23 @@ fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df,
 
 # In[*]
 
+clf = VotingClassifier(estimators=[
+    ('rc', RidgeClassifier(tol=1e-2)),
+    ('perc', Perceptron(n_iter=50)),
+    ('pa', PassiveAggressiveClassifier(n_iter=50)),
+    ('SVC_with_L1', Pipeline([
+        ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))),
+        ('classification', LinearSVC(penalty="l2"))]))
+])
+
+
+# In[*]
+
+fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, cat1_le.classes_)
+
+
+# In[*]
+
 y_train_category_df.head()
 
 
