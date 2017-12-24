@@ -50,6 +50,7 @@ from sklearn.svm import LinearSVC
 from sklearn.utils.extmath import density
 from sklearn import metrics
 import math
+get_ipython().magic('matplotlib inline')
 
 
 # In[*]
@@ -505,12 +506,13 @@ pred = clf.predict(matrix)
 pred.shape, train_df_with_no_cat.shape
 
 
+# fill the category_names with the predicted values wherever they are not present. This will be used in further predictions using pytorch.
+
 # In[*]
 
 print(train_df.loc[122])
 i = 0
 for index, row in train_df_with_no_cat.iterrows():
-#     train_df.loc[index]['category_name'] = pred[i]
     train_df.loc[train_df.train_id == index, ['category_name']] = pred[i]
     i += 1
 print(train_df.loc[122])
@@ -519,4 +521,30 @@ print(train_df.loc[122])
 # In[*]
 
 train_df[train_df['category_name'].isnull()]
+
+
+# In[*]
+
+train_df.head()
+
+
+# In[*]
+
+fig, ax = plt.subplots(1, 1, figsize=(11, 7), sharex=True)
+sns.distplot(np.log(train_df['price'].values+1))
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
+
+
+# In[*]
+
+
 
