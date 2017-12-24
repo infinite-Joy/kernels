@@ -232,7 +232,7 @@ train_df[train_df['item_description'].isnull()]
 
 # In[*]
 
-train_df[train_df.isnull().any(axis=1)]
+train_df[train_df.isnull().any(axis=1)].head()
 
 
 # In[*]
@@ -393,7 +393,8 @@ def fit_and_benchmark(clf, X_train, y_train, X_test, y_test, target_names):
                                                                                  
     print()                                                                      
     clf_descr = str(clf).split('(')[0]                                           
-    return clf_descr, score, train_time, test_time 
+    print(clf_descr, score, train_time, test_time)
+    return clf
 
 
 # In[*]
@@ -409,47 +410,113 @@ def fit_and_benchmark(clf, X_train, y_train, X_test, y_test, target_names):
 #         ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))),
 #         ('classification', LinearSVC(penalty="l2"))]))
 # ])
+# clf = VotingClassifier(estimators=[
+#     ('rc', RidgeClassifier(tol=1e-2)),
+#     ('perc', Perceptron(n_iter=50)),
+#     ('pa', PassiveAggressiveClassifier(n_iter=50))
+# ])
 clf = VotingClassifier(estimators=[
-    ('rc', RidgeClassifier(tol=1e-2)),
-    ('perc', Perceptron(n_iter=50)),
-    ('pa', PassiveAggressiveClassifier(n_iter=50))
+    ('rc', RidgeClassifier(tol=1e-2))
 ])
 
 
 # In[*]
 
-fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, cat1_le.classes_)
+clf = fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, cat1_le.classes_)
+
+
+# ### fill the category name for the missing values and build the matrix
+
+# In[*]
+
+
 
 
 # In[*]
 
-clf = VotingClassifier(estimators=[
-    ('rc', RidgeClassifier(tol=1e-2)),
-    ('perc', Perceptron(n_iter=50)),
-    ('pa', PassiveAggressiveClassifier(n_iter=50)),
-    ('SVC_with_L1', Pipeline([
-        ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False, tol=1e-3))),
-        ('classification', LinearSVC(penalty="l2"))]))
-])
+train_df['total_text'] = train_df['name'] + " " +  train_df['item_description']
 
 
 # In[*]
 
-fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, cat1_le.classes_)
+train_df_with_no_cat = train_df[train_df['category_name'].isnull()]
 
 
 # In[*]
 
-y_train_category_df.head()
+train_df_with_no_cat.head()
 
 
 # In[*]
 
-len(cat1_le.classes_)
+# def sparse_matrices(row):
+#     return vectorizer.transform([row])
 
 
 # In[*]
 
-X_category_df = category_df[['name', 'item_description']]
-y_category_df = category_df[['category_name']]
+# def predict_the_category(row):
+#     if row['category_name'] == np.null:
+#         return vectorizer.transform(row['total_text'])
+#     return row['category_name']
+
+
+# In[*]
+
+def fill_and_transform_df(df):
+    new_df = deepcopy(df)
+    for index, row in df.iterrows():
+        if pd.isnull(row['category_name']):
+            new_df.loc[index]['category_name'] = vectorizer.transform([row['total_text']])
+        else:
+            new_df.loc[index]['category_name'] = row['category_name']
+    return new_df
+
+
+# In[*]
+
+# def label_category_name(row):
+#     if pd.isnull(row['category_name']):
+#         matrix = vectorizer.transform([row['total_text']])
+#         clf.predict(matrix)
+#    if row['eri_afr_amer'] + row['eri_asian'] + row['eri_hawaiian'] + row['eri_nat_amer'] + row['eri_white'] > 1 :
+#       return 'Two Or More'
+#    if row['eri_nat_amer'] == 1 :
+#       return 'A/I AK Native'
+#    if row['eri_asian'] == 1:
+#       return 'Asian'
+#    if row['eri_afr_amer']  == 1:
+#       return 'Black/AA'
+#    if row['eri_hawaiian'] == 1:
+#       return 'Haw/Pac Isl.'
+#    if row['eri_white'] == 1:
+#       return 'White'
+#    return 'Other'
+
+
+# In[*]
+
+matrix = vectorizer.transform(train_df_with_no_cat['total_text'])
+pred = clf.predict(matrix)
+
+
+# In[*]
+
+pred.shape, train_df_with_no_cat.shape
+
+
+# In[*]
+
+print(train_df.loc[122])
+i = 0
+for index, row in train_df_with_no_cat.iterrows():
+#     train_df.loc[index]['category_name'] = pred[i]
+    train_df.loc[train_df.train_id == index, ['category_name']] = pred[i]
+    i += 1
+print(train_df.loc[122])
+
+
+# In[*]
+
+train_df[train_df['category_name'].isnull()]
 
