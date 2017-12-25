@@ -204,29 +204,47 @@ def convert_catname_cat1(le, catlist):
 
 # In[*]
 
+print('transform category name to first category as defined by the label encoding space for training set')
 train_df['category_name'] = train_df['category_name'].apply(lambda x: convert_catname_cat1(cat1_le, x))
+train_df.head()
 
 
 # In[*]
 
-train_df.head()
+print('transform category name to first category as defined by the label encoding space for test set')
+test_df['category_name'] = test_df['category_name'].apply(lambda x: convert_catname_cat1(cat1_le, x))
+test_df.head()
 
 
-# There are some null values in item description so will need to make fill them
+# There are some null values in item description so will need to make fill them. This is for the train set.
 
 # In[*]
 
 train_df[train_df['item_description'].isnull()]
+
+
+# In[*]
+
+print('presently number of null values in train and test.')
+print(train_df['item_description'].isnull().sum())
+print(test_df['item_description'].isnull().sum())
+
+
+# In[*]
+
+
 
 
 # In[*]
 
 train_df['item_description'] = train_df['item_description'].fillna("")
+print('Num of null values in item description is {}.'.format(train_df['item_description'].isnull().sum()))
+print('Ideally this number should be 0.')
 
 
 # In[*]
 
-train_df[train_df['item_description'].isnull()]
+train_df['item_description'].isnull().sum()
 
 
 # No null values in item description
