@@ -430,11 +430,6 @@ clf = fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_catego
 
 # In[*]
 
-
-
-
-# In[*]
-
 train_df['total_text'] = train_df['name'] + " " +  train_df['item_description']
 
 
@@ -450,20 +445,6 @@ train_df_with_no_cat.head()
 
 # In[*]
 
-# def sparse_matrices(row):
-#     return vectorizer.transform([row])
-
-
-# In[*]
-
-# def predict_the_category(row):
-#     if row['category_name'] == np.null:
-#         return vectorizer.transform(row['total_text'])
-#     return row['category_name']
-
-
-# In[*]
-
 def fill_and_transform_df(df):
     new_df = deepcopy(df)
     for index, row in df.iterrows():
@@ -472,27 +453,6 @@ def fill_and_transform_df(df):
         else:
             new_df.loc[index]['category_name'] = row['category_name']
     return new_df
-
-
-# In[*]
-
-# def label_category_name(row):
-#     if pd.isnull(row['category_name']):
-#         matrix = vectorizer.transform([row['total_text']])
-#         clf.predict(matrix)
-#    if row['eri_afr_amer'] + row['eri_asian'] + row['eri_hawaiian'] + row['eri_nat_amer'] + row['eri_white'] > 1 :
-#       return 'Two Or More'
-#    if row['eri_nat_amer'] == 1 :
-#       return 'A/I AK Native'
-#    if row['eri_asian'] == 1:
-#       return 'Asian'
-#    if row['eri_afr_amer']  == 1:
-#       return 'Black/AA'
-#    if row['eri_hawaiian'] == 1:
-#       return 'Haw/Pac Isl.'
-#    if row['eri_white'] == 1:
-#       return 'White'
-#    return 'Other'
 
 
 # In[*]
@@ -588,6 +548,144 @@ test_df.head()
 
 # In[*]
 
+class Category:
+    def __init__(self, name):
+        self.name = name
+        self.word2index = {}
+        self.word2count = {}
+        self.index2word = {0: "SOS", 1: "EOS"}
+        self.n_words = 2  # Count SOS and EOS
+
+    def addSentence(self, sentence):
+        for word in sentence.split(' '):
+            self.addWord(word)
+
+    def addWord(self, word):
+        if word not in self.word2index:
+            self.word2index[word] = self.n_words
+            self.word2count[word] = 1
+            self.index2word[self.n_words] = word
+            self.n_words += 1
+        else:
+            self.word2count[word] += 1
+
+
+# In[*]
+
+# Turn a Unicode string to plain ASCII, thanks to
+# http://stackoverflow.com/a/518232/2809427
+import unicodedata
+import re
+def unicodeToAscii(s):
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn'
+    )
+
+# Lowercase, trim, and remove non-letter characters
+
+
+def normalizeString(s):
+    #s = unicodeToAscii(s.lower().strip())
+    s = re.sub(r"([.!?])", r" \1", s)
+    s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
+    return s
+
+def normalizeLine(sentence):
+    return [normalizeString(s) for s in sentence.split('\t')]
+
+
+# In[*]
+
+def prepareData(lang1,data):
+    input_cat = Category(lang1)
+    for sentence in data:
+        normalize_line = [normalizeString(s) for s in sentence.split('\t')]
+        input_cat.addSentence(normalize_line[0])
+        
+    print("Counted words:")
+    print(input_cat.name, input_cat.n_words)
+    return input_cat
+
+
+# In[*]
+
+def indexesFromSentence(lang, sentence):
+    return [lang.word2index[word] for word in sentence.split(' ')]
+
+def variableFromSentence(lang, sentence):
+    indexes = indexesFromSentence(lang, sentence)
+    #indexes.append(EOS_token)
+    return indexes
+
+
+# In[*]
+
+def token_fit(column):
+    raw_text = np.hstack([(train_df[column]).str.lower(), (test_df[column]).str.lower()])
+    cat1 = prepareData(column,raw_text)
+    print ("adding train data")
+    train_df[column + '_seq'] = [variableFromSentence(cat1,normalizeLine(sentence.lower())[0]) for sentence in train_df[column]]
+    print ("adding test data")
+    test_df[column + '_seq'] = [variableFromSentence(cat1,normalizeLine(sentence.lower())[0]) for sentence in test_df[column]]
+
+
+# In[*]
+
+token_fit('name')
+
+
+# In[*]
+
+token_fit('item_description')
+
+
+# In[*]
+
+train_df.head()
+
+
+# In[*]
+
+#SEQUENCES VARIABLES ANALYSIS
+max_name_seq = np.max([np.max(train_df.name_seq.apply(lambda x: len(x))), np.max(test_df.name_seq.apply(lambda x: len(x)))])
+max_item_description_seq = np.max([np.max(train_df.item_description_seq.apply(lambda x: len(x))),
+                                   np.max(test_df.item_description_seq.apply(lambda x: len(x)))])
+print("max name seq "+str(max_name_seq))
+print("max item desc seq "+str(max_item_description_seq))
+
+
+# In[*]
+
+train_df.category_name.max()
+
+
+# In[*]
+
+[train_df.category_name.max(), test_df.category_name.max()]
+
+
+# In[*]
+
+#EMBEDDINGS MAX VALUE
+#Base on the histograms, we select the next lengths
+MAX_NAME_SEQ = 10
+MAX_ITEM_DESC_SEQ = 75
+MAX_TEXT = np.max([np.max(train_df.name_seq.max()) 
+                   , np.max(test_df.name_seq.max())
+                  , np.max(train_df.item_description_seq.max())
+                  , np.max(test_df.item_description_seq.max())])+2
+# MAX_GEN_CATEGORY = np.max([train_df.general_cat_index.max(), test_df.general_cat_index.max()])+1
+# MAX_SUB_CAT1_CATEGORY = np.max([train_df.subcat_1_index.max(), test_df.subcat_1_index.max()])+1
+# MAX_SUB_CAT2_CATEGORY = np.max([train.subcat_2_index.max(), test.subcat_2_index.max()])+1
+# MAX_BRAND = np.max([train.brand_name_index.max(), test.brand_name_index.max()])+1
+MAX_CONDITION = np.max([train_df.item_condition_id.max(), test_df.item_condition_id.max()])+1
+# MAX_CATEGORY_NAME = np.max([train_df.category_name_index.max(), test_df.category_name_index.max()])+1
+MAX_CATEGORY_NAME = np.max([train_df.category_name.max(), test_df.category_name.max()])+1
+
+
+# In[*]
+
 #EXTRACT DEVELOPTMENT TEST
 dtrain, dvalid = train_test_split(train_df, random_state=123, train_size=0.99)
 print(dtrain.shape)
@@ -605,21 +703,24 @@ def pad(tensor, length):
 
 # In[*]
 
+train_df.columns.tolist()
+
+
+# In[*]
+
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, sample):
-        name, item_desc,brand_name,cat_name,general_category,subcat1_category,subcat2_category, item_condition,shipping,target = sample['name'], sample['item_desc'], sample['brand_name'],         sample['cat_name'], sample['general_category'], sample['subcat1_category'], sample['subcat2_category'], sample['item_condition'], sample['shipping'],sample['target']
-        return {'name': pad(torch.from_numpy(np.asarray(name)).long().view(-1),MAX_NAME_SEQ),
-                'item_desc': pad(torch.from_numpy(np.asarray(item_desc)).long().view(-1),MAX_ITEM_DESC_SEQ),
-               'brand_name':torch.from_numpy(np.asarray(brand_name)),
-               'cat_name':torch.from_numpy(np.asarray(cat_name)),
-               'general_category':torch.from_numpy(np.asarray(general_category)),
-               'subcat1_category':torch.from_numpy(np.asarray(subcat1_category)),
-               'subcat2_category':torch.from_numpy(np.asarray(subcat2_category)),
-               'item_condition':torch.from_numpy(np.asarray(item_condition)),
-               'shipping':torch.torch.from_numpy(np.asarray(shipping)),
-               'target':torch.from_numpy(np.asarray(target))}
+        name, item_desc, cat_name, item_condition, shipping, target = sample['name'], sample['item_desc'], sample['cat_name'], sample['item_condition'], sample['shipping'], sample['target']
+        return {
+            'name': pad(torch.from_numpy(np.asarray(name)).long().view(-1),MAX_NAME_SEQ),
+            'item_desc': pad(torch.from_numpy(np.asarray(item_desc)).long().view(-1),MAX_ITEM_DESC_SEQ),
+            'cat_name':torch.from_numpy(np.asarray(cat_name)),
+            'item_condition':torch.from_numpy(np.asarray(item_condition)),
+            'shipping':torch.torch.from_numpy(np.asarray(shipping)),
+            'target':torch.from_numpy(np.asarray(target))
+        }
 
 
 # In[*]
@@ -644,21 +745,21 @@ class MercariDataset(Dataset):
     def __getitem__(self, idx):
         name = [self.mercari_frame.name_seq.iloc[idx]]
         item_desc = [self.mercari_frame.item_description_seq.iloc[idx]]
-        brand_name = [self.mercari_frame.brand_name_index.iloc[idx]]
+#         brand_name = [self.mercari_frame.brand_name_index.iloc[idx]]
         cat_name = [self.mercari_frame.category_name_index.iloc[idx]]
-        general_category = [self.mercari_frame.general_cat_index.iloc[idx]]
-        subcat1_category = [self.mercari_frame.subcat_1_index.iloc[idx]]
-        subcat2_category = [self.mercari_frame.subcat_2_index.iloc[idx]]
+#         general_category = [self.mercari_frame.general_cat_index.iloc[idx]]
+#         subcat1_category = [self.mercari_frame.subcat_1_index.iloc[idx]]
+#         subcat2_category = [self.mercari_frame.subcat_2_index.iloc[idx]]
         item_condition = [self.mercari_frame.item_condition_id.iloc[idx]]
         shipping = [self.mercari_frame.shipping.iloc[idx]]
         target = [self.mercari_frame.target.iloc[idx]]
         sample = {'name': name,
                 'item_desc': item_desc,
-               'brand_name': brand_name,
+#                'brand_name': brand_name,
                'cat_name': cat_name,   
-               'general_category': general_category,
-               'subcat1_category': subcat1_category,
-               'subcat2_category': subcat2_category,
+#                'general_category': general_category,
+#                'subcat1_category': subcat1_category,
+#                'subcat2_category': subcat2_category,
                'item_condition': item_condition,
                'shipping': shipping,
                'target': target}
@@ -716,7 +817,7 @@ class RegressionNeural(nn.Module):
         # declaring all the embedding for the various items
         self.name_embedding = nn.Embedding(np.asscalar(max_sizes['max_text']), 50)
         self.item_embedding = nn.Embedding(np.asscalar(max_sizes['max_text']), 50)
-        self.brand_embedding = nn.Embedding(np.asscalar(max_sizes['max_brand']), 10)
+#         self.brand_embedding = nn.Embedding(np.asscalar(max_sizes['max_brand']), 10)
         self.gencat_embedding = nn.Embedding(np.asscalar(max_sizes['max_gen_category']), 10)
         self.subcat1_embedding = nn.Embedding(np.asscalar(max_sizes['max_subcat1_category']), 10)
         self.subcat2_embedding = nn.Embedding(np.asscalar(max_sizes['max_subcat2_category']), 10)
@@ -775,10 +876,10 @@ class RegressionNeural(nn.Module):
         #embed_item = self.conv3_item_desc(embed_item)
         #print ("embed_item after 3rd conv",embed_item.size())
         
-        embed_brand = self.brand_embedding(x['brand_name'])
-        embed_gencat = self.gencat_embedding(x['general_category'])
-        embed_subcat1 = self.subcat1_embedding(x['subcat1_category'])
-        embed_subcat2 = self.subcat2_embedding(x['subcat2_category'])
+#         embed_brand = self.brand_embedding(x['brand_name'])
+#         embed_gencat = self.gencat_embedding(x['general_category'])
+#         embed_subcat1 = self.subcat1_embedding(x['subcat1_category'])
+#         embed_subcat2 = self.subcat2_embedding(x['subcat2_category'])
         embed_condition = self.condition_embedding(x['item_condition'])
         embed_catname = self.catname_embedding(x['cat_name'])
         
@@ -796,7 +897,13 @@ class RegressionNeural(nn.Module):
         out = self.fc3(out)
         return out
 
-max_sizes = {'max_text':MAX_TEXT,'max_name_seq':MAX_NAME_SEQ,'max_item_desc_seq':MAX_ITEM_DESC_SEQ,              'max_brand':MAX_BRAND,'max_cat_name':MAX_CATEGORY_NAME,'max_gen_category':MAX_GEN_CATEGORY,             'max_subcat1_category':MAX_SUB_CAT1_CATEGORY,'max_subcat2_category':MAX_SUB_CAT2_CATEGORY,             'max_condition':MAX_CONDITION} 
+max_sizes = {
+    'max_text':MAX_TEXT,'max_name_seq':MAX_NAME_SEQ,'max_item_desc_seq':MAX_ITEM_DESC_SEQ, 
+#     'max_brand':MAX_BRAND,'max_cat_name':MAX_CATEGORY_NAME,'max_gen_category':MAX_GEN_CATEGORY,
+    'max_cat_name':MAX_CATEGORY_NAME,
+#     'max_subcat1_category':MAX_SUB_CAT1_CATEGORY,'max_subcat2_category':MAX_SUB_CAT2_CATEGORY,
+    'max_condition':MAX_CONDITION
+} 
 
 deep_learn_model = RegressionNeural(max_sizes)
 
