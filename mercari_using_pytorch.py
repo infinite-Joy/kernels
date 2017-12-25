@@ -216,12 +216,7 @@ test_df['category_name'] = test_df['category_name'].apply(lambda x: convert_catn
 test_df.head()
 
 
-# There are some null values in item description so will need to make fill them. This is for the train set.
-
-# In[*]
-
-train_df[train_df['item_description'].isnull()]
-
+# There are some null values in item description so will need to make fill them.
 
 # In[*]
 
@@ -232,26 +227,21 @@ print(test_df['item_description'].isnull().sum())
 
 # In[*]
 
-
-
-
-# In[*]
-
 train_df['item_description'] = train_df['item_description'].fillna("")
-print('Num of null values in item description is {}.'.format(train_df['item_description'].isnull().sum()))
+test_df['item_description'] = test_df['item_description'].fillna("")
+print('Num of null values in item description is for training set is {}.'.format(train_df['item_description'].isnull().sum()))
+print('Num of null values in item description is for test set is {}.'.format(test_df['item_description'].isnull().sum()))
 print('Ideally this number should be 0.')
 
 
 # In[*]
 
-train_df['item_description'].isnull().sum()
+train_df[train_df.isnull().any(axis=1)].head()
 
-
-# No null values in item description
 
 # In[*]
 
-train_df[train_df.isnull().any(axis=1)].head()
+test_df[test_df.isnull().any(axis=1)].head()
 
 
 # In[*]
@@ -449,16 +439,25 @@ clf = fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_catego
 # In[*]
 
 train_df['total_text'] = train_df['name'] + " " +  train_df['item_description']
+train_df.head()
+
+
+# In[*]
+
+test_df['total_text'] = test_df['name'] + " " +  test_df['item_description']
+test_df.head()
 
 
 # In[*]
 
 train_df_with_no_cat = train_df[train_df['category_name'].isnull()]
+train_df_with_no_cat.head()
 
 
 # In[*]
 
-train_df_with_no_cat.head()
+test_df_with_no_cat = test_df[test_df['category_name'].isnull()]
+test_df_with_no_cat.head()
 
 
 # In[*]
@@ -475,13 +474,16 @@ def fill_and_transform_df(df):
 
 # In[*]
 
-matrix = vectorizer.transform(train_df_with_no_cat['total_text'])
-pred = clf.predict(matrix)
+matrix_train_df = vectorizer.transform(train_df_with_no_cat['total_text'])
+pred_train_df = clf.predict(matrix_train_df)
+print(pred_train_df.shape, train_df_with_no_cat.shape)
 
 
 # In[*]
 
-pred.shape, train_df_with_no_cat.shape
+matrix_test_df = vectorizer.transform(test_df_with_no_cat['total_text'])
+pred_test_df = clf.predict(matrix_test_df)
+print(pred_test_df.shape, test_df_with_no_cat.shape)
 
 
 # fill the category_names with the predicted values wherever they are not present. This will be used in further predictions using pytorch.
@@ -491,9 +493,17 @@ pred.shape, train_df_with_no_cat.shape
 print(train_df.loc[122])
 i = 0
 for index, row in train_df_with_no_cat.iterrows():
-    train_df.loc[train_df.train_id == index, ['category_name']] = pred[i]
+    train_df.loc[train_df.train_id == index, ['category_name']] = pred_train_df[i]
     i += 1
 print(train_df.loc[122])
+
+
+# In[*]
+
+i = 0
+for index, row in test_df_with_no_cat.iterrows():
+    test_df.loc[test_df.test_id == index, ['category_name']] = pred_test_df[i]
+    i += 1
 
 
 # In[*]
