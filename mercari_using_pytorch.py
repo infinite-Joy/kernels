@@ -700,6 +700,16 @@ test_df = pd.read_csv('data/mercari/test.1.csv')
 
 # In[*]
 
+# this is needed because the dtypes of name_seq and item_description_seq is wrong
+import ast
+train_df['name_seq'] = train_df['name_seq'].apply(ast.literal_eval)
+train_df['item_description_seq'] = train_df['item_description_seq'].apply(ast.literal_eval)
+test_df['name_seq'] = test_df['name_seq'].apply(ast.literal_eval)
+test_df['item_description_seq'] = test_df['item_description_seq'].apply(ast.literal_eval)
+
+
+# In[*]
+
 #SEQUENCES VARIABLES ANALYSIS
 max_name_seq = np.max([np.max(train_df.name_seq.apply(lambda x: len(x))), np.max(test_df.name_seq.apply(lambda x: len(x)))])
 max_item_description_seq = np.max([np.max(train_df.item_description_seq.apply(lambda x: len(x))),
@@ -710,12 +720,12 @@ print("max item desc seq "+str(max_item_description_seq))
 
 # In[*]
 
-train_df.category_name.max()
+train_df.columns.to_series().groupby(train_df.dtypes).groups
 
 
 # In[*]
 
-[train_df.category_name.max(), test_df.category_name.max()]
+train_df.name_seq.max()
 
 
 # In[*]
@@ -724,10 +734,10 @@ train_df.category_name.max()
 #Base on the histograms, we select the next lengths
 MAX_NAME_SEQ = 10
 MAX_ITEM_DESC_SEQ = 75
-MAX_TEXT = np.max([np.max(train_df.name_seq.max()) 
-                   , np.max(test_df.name_seq.max())
-                  , np.max(train_df.item_description_seq.max())
-                  , np.max(test_df.item_description_seq.max())])+2
+MAX_TEXT = np.max([np.max(train_df.name_seq.max()),
+                   np.max(test_df.name_seq.max()),
+                   np.max(train_df.item_description_seq.max()),
+                   np.max(test_df.item_description_seq.max())])+2
 # MAX_GEN_CATEGORY = np.max([train_df.general_cat_index.max(), test_df.general_cat_index.max()])+1
 # MAX_SUB_CAT1_CATEGORY = np.max([train_df.subcat_1_index.max(), test_df.subcat_1_index.max()])+1
 # MAX_SUB_CAT2_CATEGORY = np.max([train.subcat_2_index.max(), test.subcat_2_index.max()])+1
@@ -863,6 +873,11 @@ def timeSince(since, percent):
 
 # In[*]
 
+
+
+
+# In[*]
+
 # Definition of the Pytorch Model
 class RegressionNeural(nn.Module):
     def __init__(self, max_sizes):
@@ -871,9 +886,9 @@ class RegressionNeural(nn.Module):
         self.name_embedding = nn.Embedding(np.asscalar(max_sizes['max_text']), 50)
         self.item_embedding = nn.Embedding(np.asscalar(max_sizes['max_text']), 50)
 #         self.brand_embedding = nn.Embedding(np.asscalar(max_sizes['max_brand']), 10)
-        self.gencat_embedding = nn.Embedding(np.asscalar(max_sizes['max_gen_category']), 10)
-        self.subcat1_embedding = nn.Embedding(np.asscalar(max_sizes['max_subcat1_category']), 10)
-        self.subcat2_embedding = nn.Embedding(np.asscalar(max_sizes['max_subcat2_category']), 10)
+#         self.gencat_embedding = nn.Embedding(np.asscalar(max_sizes['max_gen_category']), 10)
+#         self.subcat1_embedding = nn.Embedding(np.asscalar(max_sizes['max_subcat1_category']), 10)
+#         self.subcat2_embedding = nn.Embedding(np.asscalar(max_sizes['max_subcat2_category']), 10)
         self.condition_embedding = nn.Embedding(np.asscalar(max_sizes['max_condition']), 5)
         # I am adding an embedding just based on Category name without separating it into the 3 pieces
         self.catname_embedding = nn.Embedding(np.asscalar(max_sizes['max_cat_name']), 10)
@@ -956,7 +971,8 @@ max_sizes = {
     'max_cat_name':MAX_CATEGORY_NAME,
 #     'max_subcat1_category':MAX_SUB_CAT1_CATEGORY,'max_subcat2_category':MAX_SUB_CAT2_CATEGORY,
     'max_condition':MAX_CONDITION
-} 
+}
+max_sizes = {k:int(v) for k, v in max_sizes.items()}
 
 deep_learn_model = RegressionNeural(max_sizes)
 
