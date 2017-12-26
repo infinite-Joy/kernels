@@ -49,6 +49,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn.utils.extmath import density
 from sklearn import metrics
+from sklearn.externals import joblib
 import math
 get_ipython().magic('matplotlib inline')
 
@@ -671,6 +672,30 @@ token_fit('item_description')
 # In[*]
 
 train_df.head()
+
+
+# In[*]
+
+# save the csvs
+train_df.to_csv('data/mercari/train.1.csv')
+test_df.to_csv('data/mercari/test.1.csv')
+print('transformed train and test data saved.')
+
+
+# In[*]
+
+# save the classifiers
+from sklearn.externals import joblib
+joblib.dump(clf, 'data/mercari/clf.pkl')
+print('model is saved')
+
+
+# In[*]
+
+# load the csv and the model
+clf = joblib.load('data/mercari/clf.pkl')
+train_df = pd.read_csv('data/mercari/train.1.csv')
+test_df = pd.read_csv('data/mercari/test.1.csv')
 
 
 # In[*]
