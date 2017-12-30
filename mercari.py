@@ -1,12 +1,6 @@
 
 # coding: utf-8
 
-# References:
-# 
-# https://www.kaggle.com/kswamy15/mercari-using-pytorch
-# 
-# http://scikit-learn.org/stable/modules/ensemble.html
-
 # In[*]
 
 import numpy as np
@@ -768,7 +762,7 @@ x_test_1.head()
 # In[*]
 
 #EXTRACT DEVELOPTMENT TEST
-X_dtrain, X_dvalid, y_dtrain, y_dvalid = train_test_split(x_train_1, y_train_1, random_state=123, train_size=0.99)
+X_dtrain, X_dvalid, y_dtrain, y_dvalid = train_test_split(x_train_1, y_train_1, random_state=123, test_size=0.05)
 print(X_dtrain.shape, X_dvalid.shape)
 print(y_dtrain.shape, y_dvalid.shape)
 
@@ -829,6 +823,54 @@ print(rmsle(y_dvalid.as_matrix(), predicted))
 
 # In[*]
 
+from sklearn.metrics import mean_squared_error
+print(mean_squared_error(y_dvalid.as_matrix(), predicted))
+
+
+# ## Ordinary Least Squares
+
+# In[*]
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import datasets, linear_model
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Create linear regression object
+regr = linear_model.LinearRegression()
+
+# Train the model using the training sets
+regr.fit(X_dtrain, y_dtrain)
+
+# Make predictions using the testing set
+y_pred = regr.predict(X_dvalid)
+
+# The coefficients
+print('Coefficients: \n', regr.coef_)
+# The mean squared error
+print("Mean squared error: %.2f"
+      % mean_squared_error(y_dvalid, y_pred))
+# Explained variance score: 1 is perfect prediction
+print('Variance score: %.2f' % r2_score(y_dvalid, y_pred))
+
+# Plot outputs
+plt.scatter(list(X_dvalid.index), y_dvalid,  color='black')
+plt.plot(list(X_dvalid.index), y_pred, color='blue', linewidth=3)
+
+plt.xticks(())
+plt.yticks(())
+
+plt.show()
+
+
+# References:
+# 
+# https://www.kaggle.com/kswamy15/mercari-using-pytorch
+# 
+# http://scikit-learn.org/stable/modules/ensemble.html
+
+# In[*]
+
 axes = plt.gca()
 axes.set_ylim([0,100])
 plt.scatter(predicted,y_dvalid)
@@ -850,3 +892,9 @@ submit.sample(10)
 submit = x_test_1[['test_id','price']]
 submit.to_csv("data/mercari/sample_submission.csv", index=False)
 
+
+# References:
+# 
+# https://www.kaggle.com/kswamy15/mercari-using-pytorch
+# 
+# http://scikit-learn.org/stable/modules/ensemble.html
