@@ -668,18 +668,18 @@ train_df.head()
 
 # In[*]
 
-# save the csvs
-train_df.to_csv('data/mercari/train.1.csv')
-test_df.to_csv('data/mercari/test.1.csv')
-print('transformed train and test data saved.')
+# # save the csvs
+# train_df.to_csv('data/mercari/train.1.csv')
+# test_df.to_csv('data/mercari/test.1.csv')
+# print('transformed train and test data saved.')
 
 
 # In[*]
 
-# save the classifiers
-from sklearn.externals import joblib
-joblib.dump(clf, 'data/mercari/clf.pkl')
-print('model is saved')
+# # save the classifiers
+# from sklearn.externals import joblib
+# joblib.dump(clf, 'data/mercari/clf.pkl')
+# print('model is saved')
 
 
 # In[*]
@@ -748,7 +748,7 @@ np.concatenate((a, b), axis=1)
 
 # In[*]
 
-np.concatenate((x_train.as_matrix(), train_df_total_text_matrix), axis=1)
+# np.concatenate((x_train.as_matrix(), train_df_total_text_matrix), axis=1)
 
 
 #  ## Make a matrix out of the whole thing
@@ -762,13 +762,13 @@ x_test_1 = test_df[['item_condition_id', 'category_name', 'shipping']]
 
 # In[*]
 
-train_1.head()
+x_test_1.head()
 
 
 # In[*]
 
 #EXTRACT DEVELOPTMENT TEST
-X_dtrain, X_dvalid, y_dtrain, y_dvalid = train_test_split(train_1, y_train_1, random_state=123, train_size=0.99)
+X_dtrain, X_dvalid, y_dtrain, y_dvalid = train_test_split(x_train_1, y_train_1, random_state=123, train_size=0.99)
 print(X_dtrain.shape, X_dvalid.shape)
 print(y_dtrain.shape, y_dvalid.shape)
 
@@ -807,7 +807,7 @@ def rmsle(y, y_pred):
 
 from sklearn import linear_model
 reg = linear_model.Ridge(alpha = .5)
-reg.fit (X_dtrain, y_dtrain) 
+reg.fit(X_dtrain, y_dtrain) 
 
 
 # In[*]
@@ -836,18 +836,17 @@ plt.scatter(predicted,y_dvalid)
 
 # In[*]
 
-get_ipython().system('ls -ltr data')
+### Implement and save submission
+x_test_1['price'] = reg.predict(x_test_1)
+x_test_1['test_id'] = test_df['test_id']
+
+print('Validation Data Distribution: \n', x_test_1['price'].value_counts(normalize = True))
+submit.sample(10)
 
 
 # In[*]
 
-### Implement and save submission
-data_val['Survived'] = voting_hard.predict(data_val[data1_x_bin])
-
 #submit file
-submit = data_val[['PassengerId','Survived']]
-submit.to_csv("data/mercari/submit.csv", index=False)
-
-print('Validation Data Distribution: \n', data_val['Survived'].value_counts(normalize = True))
-submit.sample(10)
+submit = x_test_1[['test_id','price']]
+submit.to_csv("data/mercari/sample_submission.csv", index=False)
 
