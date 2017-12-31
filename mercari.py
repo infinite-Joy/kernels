@@ -863,6 +863,280 @@ plt.yticks(())
 plt.show()
 
 
+# ### RNN using pytorch
+
+# In[*]
+
+import torch
+from torch.nn import functional as F
+from torch.autograd import Variable
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# In[*]
+
+# Hyper parameters
+TIME_STEP= 10            # rnn time step
+INPUT_SIZE = 1           # rnn input size
+LR = 0.02                # learning rate
+
+
+# In[*]
+
+X_dtrain.as_matrix().shape[0]
+
+
+# In[*]
+
+# show data
+N = X_dtrain.as_matrix().shape[0]
+steps = np.linspace(0, np.pi*2, N, dtype=np.float32)
+x_np = X_dtrain.as_matrix().astype(np.float32)
+y_np = y_dtrain.as_matrix().astype(np.float32)
+
+
+# In[*]
+
+class RNN(torch.nn.Module):
+    def __init__(self):
+        super(RNN, self).__init__()
+        
+        self.rnn = torch.nn.RNN(
+            input_size=INPUT_SIZE,
+            hidden_size=32,         # rnn hidden unit
+            num_layers=1,             # number of rnn layer
+            batch_first=True,         # input and output will have batch size as 1s dimension, e.g. (batch, time_step, input_size)
+        )
+        
+        self.out = torch.nn.Linear(32, 1)
+        
+    def forward(self, x, h_state):
+        # x (batch, time_step, input_size)
+        # h_state (n_layers, batch, hidden_size)
+        # r_out (batch, time_step, hidden_size)
+        r_out, h_state = self.rnn(x, h_state)
+        
+        outs = []    # save all predictions
+        for time_step in range(r_out.size(1)):    # calculating output for each time step
+            outs.append(self.out(r_out[:, time_step, :]))
+        return torch.stack(outs, dim=1), h_state
+    
+        # instead, for simplicity, you can replace above codes by follows
+        # r_out = r_out.view(-1, 32)
+        # outs = self.out(r_out)
+        # return outs, h_state
+
+
+# In[*]
+
+rnn = RNN()
+print(rnn)  # net architecture
+
+
+# In[*]
+
+optimizer = torch.optim.Adam(rnn.parameters(), lr=LR)
+loss_func = torch.nn.MSELoss()  # this is for regression mean squared loss
+
+
+# In[*]
+
+h_state = None # for initial hidden state
+
+for step in range(60):
+    start, end = step * np.pi, (step+1)*np.pi   # time range
+    # use sin predicts cos
+    steps = np.linspace(start, end, TIME_STEP, dtype=np.float32)
+    x_np = X_dtrain.as_matrix().astype(np.float32)
+    y_np = y_dtrain.as_matrix().astype(np.float32)
+    
+#     x = Variable(torch.from_numpy(x_np[np.newaxis, :, np.newaxis]))    # shape (batch, time_step, input_size)
+#     y = Variable(torch.from_numpy(y_np[np.newaxis, :, np.newaxis]))
+    x = Variable(torch.from_numpy(x_np))    # shape (batch, time_step, input_size)
+    y = Variable(torch.from_numpy(y_np))
+
+    
+    prediction, h_state = rnn(x, h_state) # rnn output
+    # !! next step is important !!
+    h_state = Variable(h_state.data)        # repack the hidden state, break the connection from last iteration
+    
+    loss = loss_func(prediction, y)         # cross entropy loss
+    optimizer.zero_grad()                   # clear gradients for this training loss
+    loss.backward()                         # backpropagation, compute gradients
+    optimizer.step()                        # apply gradients
+
+
+# In[*]
+
+from itertools import count
+
+import torch
+import torch.autograd
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+
+# In[*]
+
+POLY_DEGREE = 3
+W_target = torch.randn(POLY_DEGREE, 1) * 5
+b_target = torch.randn(1) * 5
+
+
+# In[*]
+
+W_target
+
+
+# In[*]
+
+b_target
+
+
+# In[*]
+
+def make_features(x):
+    """Builds features i.e. a matrix with columns [x, x^2, x^3, x^4]."""
+    x_np = X_dtrain.as_matrix().astype(np.float32)
+    return torch.from_numpy(x_np)
+#     return torch.cat([x ** i for i in range(1, POLY_DEGREE+1)], 1)
+
+
+# In[*]
+
+def f(x):
+    """Approximated function."""
+    y_n = y_dtrain.as_matrix().astype(np.float32)
+    return torch.from_numpy(y_np)
+
+
+# In[*]
+
+def poly_desc(W, b):
+    """Creates a string description of a polynomial."""
+    result = 'y = '
+    for i, w in enumerate(W):
+        result += '{:+.2f} x^{} '.format(w, len(W) - i)
+    result += '{:+.2f}'.format(b[0])
+    return result
+
+
+# In[*]
+
+def get_batch(batch_size=32):
+    """Builds a batch i.e. (x, f(x)) pair."""
+    random = torch.randn(batch_size)
+    x = make_features(random)
+    y = f(x)
+    return Variable(x), Variable(y)
+
+
+# In[*]
+
+# Define model
+fc = torch.nn.Linear(W_target.size(0), 1)
+
+for batch_idx in count(1):
+# for batch_idx in range(1, 1000):
+    # Get data
+    batch_x, batch_y = get_batch()
+
+    # Reset gradients
+    fc.zero_grad()
+
+    # Forward pass
+    output = F.smooth_l1_loss(fc(batch_x), batch_y)
+    loss = output.data[0]
+
+    # Backward pass
+    output.backward()
+
+    # Apply gradients
+    for param in fc.parameters():
+        param.data.add_(-0.1 * param.grad.data)
+
+    # Stop criterion
+    if loss < 1e-3:
+        break
+
+print('Loss: {:.6f} after {} batches'.format(loss, batch_idx))
+print('==> Learned function:\t' + poly_desc(fc.weight.data.view(-1), fc.bias.data))
+print('==> Actual function:\t' + poly_desc(W_target.view(-1), b_target))
+
+
+# In[*]
+
+class Net(torch.nn.Module):
+    def __init__(self, n_feature, n_hidden, n_output):
+        super(Net, self).__init__()
+        self.hidden = torch.nn.Linear(n_feature, n_hidden)  # hidden layer
+        self.predict = torch.nn.Linear(n_hidden, n_output)  # outut layer
+        
+    def forward(self, x):
+        x = F.relu(self.hidden(x))      # activation function for hidden layer
+        x = self.predict(x)         
+        # linear output
+        return x
+
+
+# In[*]
+
+net = Net(n_feature=3, n_hidden=10, n_output=1)     # define the network
+print(net)  # net architecture
+
+
+# In[*]
+
+optimizer = torch.optim.SGD(net.parameters(), lr=0.5)
+loss_func = torch.nn.MSELoss()  # this is for regression mean squared loss
+
+
+# In[*]
+
+for t in range(100):
+    batch_x, batch_y = get_batch()
+    prediction = net(batch_x)               # input x and predict based on x
+    loss = loss_func(prediction, batch_y)   # must be (1. nn output, 2. target)
+    optimizer.zero_grad()             # clear gradients for next train
+    loss.backward()                   # backpropagation, compute gradients
+    optimizer.step()                  # apply gradients
+    
+#     if t % 5 == 0:
+#         # plot and show learning process
+#         plt.cla()
+#         plt.scatter(x.data.numpy(), y.data.numpy())
+#         plt.plot(x.data.numpy(), prediction.data.numpy(), 'r-', lw=5)
+#         plt.text(0.5, 0, 'Loss=%.4f' % loss.data[0], fontdict={'size': 20, 'color':  'red'})
+#         plt.pause(0.1)
+
+
+# In[*]
+
+# Make predictions using the testing set
+prediction = prediction.data.numpy()
+y_validation = batch_y.data.numpy()
+
+# The mean squared error
+print("Mean squared error: %.2f"
+      % mean_squared_error(y_validation, prediction))
+# # Explained variance score: 1 is perfect prediction
+# print('Variance score: %.2f' % r2_score(y_dvalid, y_pred))
+
+
+# In[*]
+
+y_validation = batch_y.data.numpy()
+
+print('the score got from pytorch neural network is:')
+print(rmsle(y_validation, prediction))
+
+
+# In[*]
+
+
+
+
 # References:
 # 
 # https://www.kaggle.com/kswamy15/mercari-using-pytorch
