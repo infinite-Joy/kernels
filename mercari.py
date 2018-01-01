@@ -129,22 +129,33 @@ combined_df.iloc[[index_whr_max_categories]]
 
 # In[*]
 
-def split_cat(text, max_num_of_categories):
-    return_val = ["None"] * max_num_of_categories
+# def split_cat(text, max_num_of_categories):
+#     return_val = ["None"] * max_num_of_categories
+#     try:
+#         text_list = text.split("/") + return_val
+#         return text_list[:max_num_of_categories]
+#     except:
+#         return return_val
+    
+def split_cat(text):
     try:
-        text_list = text.split("/") + return_val
-        return text_list[:max_num_of_categories]
+        text_list = text.split("/")
+        return text_list
     except:
-        return return_val
+        return np.nan
 
 
 # Change the category name for train and test and total dataframes
 
 # In[*]
 
-train_df['category_name'] = train_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
-test_df['category_name'] = test_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
-combined_df['category_name'] = combined_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+# train_df['category_name'] = train_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+# test_df['category_name'] = test_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+# combined_df['category_name'] = combined_df['category_name'].apply(lambda x: split_cat(x, max_num_of_categories))
+
+train_df['category_name'] = train_df['category_name'].apply(lambda x: split_cat(x))
+test_df['category_name'] = test_df['category_name'].apply(lambda x: split_cat(x))
+combined_df['category_name'] = combined_df['category_name'].apply(lambda x: split_cat(x))
 
 
 # In[*]
@@ -154,18 +165,136 @@ train_df.head()
 
 # now we know that there are 5 categories so we will try to find the unknown ones category per category. so we will make predictions based on the 5 categories
 
-# ### Running category encoding on the first category
+# ### Compiling a list of categories and classifying them as category1, category2 and so on
 
 # In[*]
 
-combined_cat1_list = [x[0] for x in combined_df['category_name'].tolist()]
-combined_cat1_list = [x for x in combined_cat1_list if not x == 'None']
+# def resolve_category(item):
+#     return_val = item[0]
+#     if return_val == 'None':
+#         return ""
+#     return return_val
+    
+
+train_df['test_cat'] = cat1_le.transform(train_df['category_name'].apply(lambda x: resolve_item(x, 0)))
+
+
+# In[*]
+
+cat1_le.transform([''])[0]
+
+
+# In[*]
+
+train_df.head()
+
+
+# In[*]
+
+cat1_le.transform(train_df['test_cat'].apply(lambda x: ))
+
+
+# In[*]
+
+def resolve_item(item, index):
+    try:
+        return item[index]
+    except:
+        return ""
+    
+    
+def resolve_null_value(item, null_value):
+    if item == null_value:
+        return np.nan
+    else:
+        return item
+
+    
+def replace_null_value(df, le, category_name, nullity=''):
+    null_value = le.transform([nullity])[0]
+    return df[category_name].apply(lambda x: resolve_null_value(x, null_value))
+
+
+def label_encoding_transform(target_df, combined_df, max_num_of_categories):
+    for i in range(max_num_of_categories):
+        combined_cat_list = [resolve_item(x, i) for x in combined_df['category_name'].tolist()]
+        
+        cat_le = LabelEncoder()
+        cat_le.fit(combined_cat_list)
+        
+        category_name = 'category_{}'.format(i)
+        
+        target_df[category_name] = cat_le.transform(target_df['category_name'].apply(lambda x: resolve_item(x, i)))
+        
+        # replace null value
+        target_df[category_name] = replace_null_value(target_df, cat_le, category_name)
+    return target_df
+
+
+# In[*]
+
+train_df = label_encoding_transform(train_df, combined_df, max_num_of_categories)
+train_df.head()
+
+
+# In[*]
+
+combined_cat1_list = [resolve_item(x, 0) for x in combined_df['category_name'].tolist()]
+# combined_cat1_list = [x for x in combined_cat1_list if not x == 'None']
+
+
+# In[*]
+
+combined_cat2_list = [x[1] for x in combined_df['category_name'].tolist()]
+combined_cat2_list = [x for x in combined_cat2_list if not x == 'None']
+
+
+# In[*]
+
+combined_cat3_list = [x[2] for x in combined_df['category_name'].tolist()]
+combined_cat3_list = [x for x in combined_cat3_list if not x == 'None']
+
+
+# In[*]
+
+combined_cat4_list = [x[3] for x in combined_df['category_name'].tolist()]
+combined_cat4_list = [x for x in combined_cat4_list if not x == 'None']
+
+
+# In[*]
+
+combined_cat5_list = [x[4] for x in combined_df['category_name'].tolist()]
+combined_cat5_list = [x for x in combined_cat5_list if not x == 'None']
 
 
 # In[*]
 
 cat1_le = LabelEncoder()
 cat1_le.fit(combined_cat1_list)
+
+
+# In[*]
+
+cat2_le = LabelEncoder()
+cat2_le.fit(combined_cat2_list)
+
+
+# In[*]
+
+cat3_le = LabelEncoder()
+cat3_le.fit(combined_cat3_list)
+
+
+# In[*]
+
+cat4_le = LabelEncoder()
+cat4_le.fit(combined_cat4_list)
+
+
+# In[*]
+
+cat5_le = LabelEncoder()
+cat5_le.fit(combined_cat5_list)
 
 
 # In[*]
