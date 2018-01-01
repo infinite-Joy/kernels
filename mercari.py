@@ -169,33 +169,6 @@ train_df.head()
 
 # In[*]
 
-# def resolve_category(item):
-#     return_val = item[0]
-#     if return_val == 'None':
-#         return ""
-#     return return_val
-    
-
-train_df['test_cat'] = cat1_le.transform(train_df['category_name'].apply(lambda x: resolve_item(x, 0)))
-
-
-# In[*]
-
-cat1_le.transform([''])[0]
-
-
-# In[*]
-
-train_df.head()
-
-
-# In[*]
-
-cat1_le.transform(train_df['test_cat'].apply(lambda x: ))
-
-
-# In[*]
-
 def resolve_item(item, index):
     try:
         return item[index]
@@ -216,6 +189,7 @@ def replace_null_value(df, le, category_name, nullity=''):
 
 
 def label_encoding_transform(target_df, combined_df, max_num_of_categories):
+    category_transforms = []
     for i in range(max_num_of_categories):
         combined_cat_list = [resolve_item(x, i) for x in combined_df['category_name'].tolist()]
         
@@ -228,107 +202,19 @@ def label_encoding_transform(target_df, combined_df, max_num_of_categories):
         
         # replace null value
         target_df[category_name] = replace_null_value(target_df, cat_le, category_name)
-    return target_df
+        category_transforms.append(cat_le)
+    return target_df, category_transforms
 
 
 # In[*]
 
-train_df = label_encoding_transform(train_df, combined_df, max_num_of_categories)
+train_df, train_cat_transforms = label_encoding_transform(train_df, combined_df, max_num_of_categories)
 train_df.head()
 
 
 # In[*]
 
-combined_cat1_list = [resolve_item(x, 0) for x in combined_df['category_name'].tolist()]
-# combined_cat1_list = [x for x in combined_cat1_list if not x == 'None']
-
-
-# In[*]
-
-combined_cat2_list = [x[1] for x in combined_df['category_name'].tolist()]
-combined_cat2_list = [x for x in combined_cat2_list if not x == 'None']
-
-
-# In[*]
-
-combined_cat3_list = [x[2] for x in combined_df['category_name'].tolist()]
-combined_cat3_list = [x for x in combined_cat3_list if not x == 'None']
-
-
-# In[*]
-
-combined_cat4_list = [x[3] for x in combined_df['category_name'].tolist()]
-combined_cat4_list = [x for x in combined_cat4_list if not x == 'None']
-
-
-# In[*]
-
-combined_cat5_list = [x[4] for x in combined_df['category_name'].tolist()]
-combined_cat5_list = [x for x in combined_cat5_list if not x == 'None']
-
-
-# In[*]
-
-cat1_le = LabelEncoder()
-cat1_le.fit(combined_cat1_list)
-
-
-# In[*]
-
-cat2_le = LabelEncoder()
-cat2_le.fit(combined_cat2_list)
-
-
-# In[*]
-
-cat3_le = LabelEncoder()
-cat3_le.fit(combined_cat3_list)
-
-
-# In[*]
-
-cat4_le = LabelEncoder()
-cat4_le.fit(combined_cat4_list)
-
-
-# In[*]
-
-cat5_le = LabelEncoder()
-cat5_le.fit(combined_cat5_list)
-
-
-# In[*]
-
-cat1_le.transform(['Men', 'Electronics', 'Women', 'Home', 'Women'])
-
-
-# In[*]
-
-cat1_le.inverse_transform([5, 1, 9, 3, 9])
-
-
-# Thus we are able to build a label encoder state space for the first category
-
-# In[*]
-
-def convert_catname_cat1(le, catlist):
-    try:
-        return le.transform(catlist[:1])[0]
-    except:
-        return np.nan
-
-
-# In[*]
-
-print('transform category name to first category as defined by the label encoding space for training set')
-train_df['category_name'] = train_df['category_name'].apply(lambda x: convert_catname_cat1(cat1_le, x))
-train_df.head()
-
-
-# In[*]
-
-print('transform category name to first category as defined by the label encoding space for test set')
-test_df['category_name'] = test_df['category_name'].apply(lambda x: convert_catname_cat1(cat1_le, x))
+test_df, test_cat_transforms = label_encoding_transform(test_df, combined_df, max_num_of_categories)
 test_df.head()
 
 
@@ -363,7 +249,7 @@ test_df[test_df.isnull().any(axis=1)].head()
 # In[*]
 
 value_list = ['iPhone']
-train_df[train_df.name.isin(value_list)]
+train_df[train_df.name.isin(value_list)].head()
 
 
 # For the missing category names we should try to find some unsupervised learning so that some amount filling of the data should be present.
@@ -415,9 +301,9 @@ predict_category_df.head()
 # In[*]
 
 X_train_category_df = train_categry_df[['name', 'item_description']]
-y_train_category_df = train_categry_df[['category_name']]
+y_train_category_df = train_categry_df[['category_0']]
 X_test_category_df = test_categry_df[['name', 'item_description']]
-y_test_category_df = test_categry_df[['category_name']]
+y_test_category_df = test_categry_df[['category_0']]
 print('separate to x and y')
 print(X_train_category_df.shape, y_train_category_df.shape, X_test_category_df.shape, y_test_category_df.shape)
 
@@ -547,7 +433,7 @@ clf = VotingClassifier(estimators=[
 
 # In[*]
 
-clf = fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, cat1_le.classes_)
+clf = fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, train_cat_transforms[0].classes_)
 
 
 # ### fill the category name for the missing values and build the matrix
@@ -609,7 +495,7 @@ print(pred_test_df.shape, test_df_with_no_cat.shape)
 print(train_df.loc[122])
 i = 0
 for index, row in train_df_with_no_cat.iterrows():
-    train_df.loc[train_df.train_id == index, ['category_name']] = pred_train_df[i]
+    train_df.loc[train_df.train_id == index, ['category_0']] = pred_train_df[i]
     i += 1
 print(train_df.loc[122])
 
@@ -618,19 +504,16 @@ print(train_df.loc[122])
 
 i = 0
 for index, row in test_df_with_no_cat.iterrows():
-    test_df.loc[test_df.test_id == index, ['category_name']] = pred_test_df[i]
+    test_df.loc[test_df.test_id == index, ['category_0']] = pred_test_df[i]
     i += 1
 
 
 # In[*]
 
-train_df[train_df['category_name'].isnull()]
+train_df[train_df['category_0'].isnull()]
 
 
-# In[*]
-
-train_df.head()
-
+# ### Now coming to the main part and the main price predictions
 
 # In[*]
 
@@ -807,28 +690,28 @@ train_df.head()
 
 # In[*]
 
-# load the csv and the model
-clf = joblib.load('data/mercari/clf.pkl')
-train_df = pd.read_csv('data/mercari/train.1.csv')
-test_df = pd.read_csv('data/mercari/test.1.csv')
+# # load the csv and the model
+# clf = joblib.load('data/mercari/clf.pkl')
+# train_df = pd.read_csv('data/mercari/train.1.csv')
+# test_df = pd.read_csv('data/mercari/test.1.csv')
 
 
 # In[*]
 
 # this is needed because the dtypes of name_seq and item_description_seq is wrong
-import ast
-train_df['name_seq'] = train_df['name_seq'].apply(ast.literal_eval)
-train_df['item_description_seq'] = train_df['item_description_seq'].apply(ast.literal_eval)
-test_df['name_seq'] = test_df['name_seq'].apply(ast.literal_eval)
-test_df['item_description_seq'] = test_df['item_description_seq'].apply(ast.literal_eval)
+# import ast
+# train_df['name_seq'] = train_df['name_seq'].apply(ast.literal_eval)
+# train_df['item_description_seq'] = train_df['item_description_seq'].apply(ast.literal_eval)
+# test_df['name_seq'] = test_df['name_seq'].apply(ast.literal_eval)
+# test_df['item_description_seq'] = test_df['item_description_seq'].apply(ast.literal_eval)
 
 
 # In[*]
 
-train_df['name_seq'] = train_df['name_seq'].apply(lambda x: np.array(x))
-train_df['item_description_seq'] = train_df['item_description_seq'].apply(lambda x: np.array(x))
-test_df['name_seq'] = test_df['name_seq'].apply(lambda x: np.array(x))
-test_df['item_description_seq'] = test_df['item_description_seq'].apply(lambda x: np.array(x))
+# train_df['name_seq'] = train_df['name_seq'].apply(lambda x: np.array(x))
+# train_df['item_description_seq'] = train_df['item_description_seq'].apply(lambda x: np.array(x))
+# test_df['name_seq'] = test_df['name_seq'].apply(lambda x: np.array(x))
+# test_df['item_description_seq'] = test_df['item_description_seq'].apply(lambda x: np.array(x))
 
 
 # In[*]
@@ -839,53 +722,17 @@ test_df_total_text_matrix = vectorizer.transform(test_df['total_text'])
 
 # In[*]
 
-x_train = train_df[['item_condition_id', 'category_name', 'shipping']]
+x_train = train_df[['item_condition_id', 'category_0', 'shipping']]
 y_train = train_df['price']
-
-
-# In[*]
-
-x_train.as_matrix().shape, train_df_total_text_matrix.shape
-
-
-# In[*]
-
-train_df_total_text_matrix.T.shape
-
-
-# In[*]
-
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5, 6, 1], [3,4, 1]])
-
-
-# In[*]
-
-a.shape, b.shape
-
-
-# In[*]
-
-np.concatenate((a, b), axis=1)
-
-
-# In[*]
-
-# np.concatenate((x_train.as_matrix(), train_df_total_text_matrix), axis=1)
 
 
 #  ## Make a matrix out of the whole thing
 
 # In[*]
 
-x_train_1 = train_df[['item_condition_id', 'category_name', 'shipping']]
+x_train_1 = train_df[['item_condition_id', 'category_0', 'shipping']]
 y_train_1 = train_df['price']
-x_test_1 = test_df[['item_condition_id', 'category_name', 'shipping']]
-
-
-# In[*]
-
-x_test_1.head()
+x_test_1 = test_df[['item_condition_id', 'category_0', 'shipping']]
 
 
 # In[*]
