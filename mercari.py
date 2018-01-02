@@ -295,65 +295,107 @@ print(predict_category_df.shape[0] + train_categry_df.shape[0] + test_categry_df
 
 # In[*]
 
-predict_category_df.head()
+def predict_train_test(category_df, category_name):
+    predict_category_df = category_df[pd.isnull(category_df[category_name])]
+    train_test_categry_df = category_df[pd.notnull(category_df[category_name])]
+    train_categry_df, test_categry_df = train_test_split(train_test_categry_df, test_size=0.2, random_state=42)
+    return dict(predict_category_df=predict_category_df, 
+                train_categry_df=train_categry_df, 
+                test_categry_df=test_categry_df)
 
 
 # In[*]
 
-X_train_category_df = train_categry_df[['name', 'item_description']]
-y_train_category_df = train_categry_df[['category_0']]
-X_test_category_df = test_categry_df[['name', 'item_description']]
-y_test_category_df = test_categry_df[['category_0']]
+predict_train_test_dict = {}
+
+
+# In[*]
+
+predict_train_test_dict['category_0'] = predict_train_test(category_df, 'category_0')
+predict_train_test_dict['category_1'] = predict_train_test(category_df, 'category_1')
+
+
+# In[*]
+
+# X_train_category_df = train_categry_df[['name', 'item_description']]
+# y_train_category_df = train_categry_df[['category_0']]
+# X_test_category_df = test_categry_df[['name', 'item_description']]
+# y_test_category_df = test_categry_df[['category_0']]
+# print('separate to x and y')
+# print(X_train_category_df.shape, y_train_category_df.shape, X_test_category_df.shape, y_test_category_df.shape)
+
+
+# In[*]
+
+X_train_category_df_list = [df['train_categry_df'][['name', 'item_description']] for cat, df in predict_train_test_dict.items()]
+y_train_category_df_list = [df['train_categry_df'][[cat]] for cat, df in predict_train_test_dict.items()]
+X_test_category_df_list = [df['test_categry_df'][['name', 'item_description']] for cat, df in predict_train_test_dict.items()]
+y_test_category_df_list = [df['test_categry_df'][[cat]] for cat, df in predict_train_test_dict.items()]
+
+
+# In[*]
+
 print('separate to x and y')
-print(X_train_category_df.shape, y_train_category_df.shape, X_test_category_df.shape, y_test_category_df.shape)
+print(X_train_category_df_list[0].shape, y_train_category_df_list[0].shape, X_test_category_df_list[0].shape, y_test_category_df_list[0].shape)
+print(X_train_category_df_list[1].shape, y_train_category_df_list[1].shape, X_test_category_df_list[1].shape, y_test_category_df_list[1].shape)
 
 
 # In[*]
 
-y_train_category_df.head()
+y_train_category_df_list[0].head()
 
 
 # In[*]
 
-y_test_category_df.head()
-
-
-# Combine the name and item_description
-
-# In[*]
-
-X_train_category_df.head()
+X_train_category_df_list[0].head()
 
 
 # In[*]
 
-X_train_category_df['total_text'] = X_train_category_df['name'] + " " +  X_train_category_df['item_description']
-X_train_category_df.head()
+number_of_cats = len(X_train_category_df_list)
+for i in range(number_of_cats):
+    X_train_category_df_list[i]['total_text'] = (
+        X_train_category_df_list[i]['name'] 
+        + " " 
+        +  X_train_category_df_list[i]['item_description']
+    )
+    
+    X_test_category_df_list[i]['total_text'] = (
+        X_test_category_df_list[i]['name'] 
+        + " " +  X_test_category_df_list[i]['item_description']
+    )
+
+
+X_train_category_df_list[0].head()
 
 
 # In[*]
 
-X_test_category_df['total_text'] = X_test_category_df['name'] + " " +  X_test_category_df['item_description']
-X_test_category_df.head()
-
-
-# In[*]
+vectorizers = []
+x_trains = []
 
 print('Extracting features from the training data using a sparse vectorizer')
 t0 = time()
-vectorizer = TfidfVectorizer(sublinear_tf=True, max_df=0.5, stop_words='english')
-x_train = vectorizer.fit_transform(X_train_category_df['total_text'])
+for i in range(number_of_cats):
+    vectorizer = TfidfVectorizer(sublinear_tf=True, max_df=0.5, stop_words='english')
+    x_train = vectorizer.fit_transform(X_train_category_df_list[i]['total_text'])
+    vectorizers.append(vectorizer)
+    x_trains.append(x_train)
 duration = time() - t0
 print("done in %fs" % (duration))    
-print("n_samples: %d, n_features: %d" % x_train.shape)
+# print("n_samples: %d, n_features: %d" % x_train.shape)
 print()
 
 
 # In[*]
+
+x_tests = []
 
 print('Extracting features from the testing data using a sparse vectorizer')
 t0 = time()
-x_test = vectorizer.transform(X_test_category_df['total_text'])
+for i in range(number_of_cats):
+    x_test = vectorizers[i].transform(X_test_category_df_list[i]['total_text'])
+    x_tests.append(x_test)
 duration = time() - t0
 print("done in %fs" % (duration))    
 print("n_samples: %d, n_features: %d" % x_train.shape)
@@ -362,7 +404,7 @@ print()
 
 # In[*]
 
-feature_names = vectorizer.get_feature_names()
+# feature_names = vectorizer.get_feature_names()
 
 
 # In[*]
@@ -433,7 +475,13 @@ clf = VotingClassifier(estimators=[
 
 # In[*]
 
-clf = fit_and_benchmark(clf, x_train, y_train_category_df, x_test, y_test_category_df, train_cat_transforms[0].classes_)
+clfs = []
+t0 = time()
+for i in range(number_of_cats):
+    clf = fit_and_benchmark(clf, x_trains[i], y_train_category_df_list[i], x_tests[i], y_test_category_df_list[i], train_cat_transforms[i].classes_)
+    clfs.append(clf)
+classification_time = time() - t0
+print("classifiction time:  %0.3fs" % classification_time)
 
 
 # ### fill the category name for the missing values and build the matrix
@@ -674,18 +722,19 @@ train_df.head()
 
 # In[*]
 
-# # save the csvs
-# train_df.to_csv('data/mercari/train.1.csv')
-# test_df.to_csv('data/mercari/test.1.csv')
-# print('transformed train and test data saved.')
+# save the csvs
+train_df.to_csv('data/mercari/train.1.csv')
+test_df.to_csv('data/mercari/test.1.csv')
+print('transformed train and test data saved.')
 
 
 # In[*]
 
-# # save the classifiers
-# from sklearn.externals import joblib
-# joblib.dump(clf, 'data/mercari/clf.pkl')
-# print('model is saved')
+# save the classifiers
+from sklearn.externals import joblib
+joblib.dump(clfs[0], 'data/mercari/clf_0.pkl')
+joblib.dump(clfs[1], 'data/mercari/clf_1.pkl')
+print('model is saved')
 
 
 # In[*]
