@@ -468,18 +468,20 @@ def fit_and_benchmark(clf, X_train, y_train, X_test, y_test, target_names):
 #     ('perc', Perceptron(n_iter=50)),
 #     ('pa', PassiveAggressiveClassifier(n_iter=50))
 # ])
-clf = VotingClassifier(estimators=[
-    ('rc', RidgeClassifier(tol=1e-2))
-])
+def create_classifiers(number_of_cats):
+    for i in range(number_of_cats):
+        clf = VotingClassifier(estimators=[
+            ('rc', RidgeClassifier(tol=1e-2))
+        ])
+        yield clf
 
 
 # In[*]
 
-clfs = []
+clfs = [c for c in create_classifiers(number_of_cats)]
 t0 = time()
 for i in range(number_of_cats):
-    clf = fit_and_benchmark(clf, x_trains[i], y_train_category_df_list[i], x_tests[i], y_test_category_df_list[i], train_cat_transforms[i].classes_)
-    clfs.append(clf)
+    clfs[i] = fit_and_benchmark(clfs[i], x_trains[i], y_train_category_df_list[i], x_tests[i], y_test_category_df_list[i], train_cat_transforms[i].classes_)
 classification_time = time() - t0
 print("classifiction time:  %0.3fs" % classification_time)
 
@@ -500,40 +502,66 @@ test_df.head()
 
 # In[*]
 
-train_df_with_no_cat = train_df[train_df['category_name'].isnull()]
-train_df_with_no_cat.head()
+train_df_with_no_cat_list = []
+# for i in range(number_of_cats):
+for i in range(2):
+    cat_name = 'category_{}'.format(i)
+    train_df_with_no_cat = train_df[train_df[cat_name].isnull()]
+    train_df_with_no_cat_list.append(train_df_with_no_cat)
+    
+# train_df_with_no_cat.head()
 
 
 # In[*]
 
-test_df_with_no_cat = test_df[test_df['category_name'].isnull()]
-test_df_with_no_cat.head()
+test_df_with_no_cat_list = []
+# for i in range(number_of_cats):
+for i in range(2):
+    cat_name = 'category_{}'.format(i)
+    test_df_with_no_cat = test_df[test_df[cat_name].isnull()]
+    test_df_with_no_cat_list.append(train_df_with_no_cat)
+    
+test_df_with_no_cat_list[0].head()
 
 
 # In[*]
 
-def fill_and_transform_df(df):
+def fill_and_transform_df(df, cat_name):
     new_df = deepcopy(df)
     for index, row in df.iterrows():
-        if pd.isnull(row['category_name']):
-            new_df.loc[index]['category_name'] = vectorizer.transform([row['total_text']])
+        if pd.isnull(row[cat_name]):
+            new_df.loc[index][cat_name] = vectorizer.transform([row['total_text']])
         else:
-            new_df.loc[index]['category_name'] = row['category_name']
+            new_df.loc[index][cat_name] = row[cat_name]
     return new_df
 
 
 # In[*]
 
-matrix_train_df = vectorizer.transform(train_df_with_no_cat['total_text'])
-pred_train_df = clf.predict(matrix_train_df)
-print(pred_train_df.shape, train_df_with_no_cat.shape)
+matrix_train_dfs = []
+pred_train_dfs = []
+
+for i in range(2):
+    matrix_train_df = vectorizers[i].transform(train_df_with_no_cat_list[i]['total_text'])
+    pred_train_df = clfs[i].predict(matrix_train_df)
+    matrix_train_dfs.append(matrix_train_df)
+    pred_train_dfs.append(pred_train_df)
+
+print(pred_train_dfs[0].shape, train_df_with_no_cat_list[0].shape)
 
 
 # In[*]
 
-matrix_test_df = vectorizer.transform(test_df_with_no_cat['total_text'])
-pred_test_df = clf.predict(matrix_test_df)
-print(pred_test_df.shape, test_df_with_no_cat.shape)
+matrix_test_dfs = []
+pred_test_dfs = []
+
+for i in range(2):
+    matrix_test_df = vectorizers[i].transform(test_df_with_no_cat_list[i]['total_text'])
+    pred_test_df = clfs[i].predict(matrix_test_df)
+    matrix_test_dfs.append(matrix_test_df)
+    pred_test_dfs.append(pred_test_df)
+    
+print(pred_test_dfs[0].shape, test_df_with_no_cat_list[0].shape)
 
 
 # fill the category_names with the predicted values wherever they are not present. This will be used in further predictions using pytorch.
@@ -541,10 +569,12 @@ print(pred_test_df.shape, test_df_with_no_cat.shape)
 # In[*]
 
 print(train_df.loc[122])
-i = 0
-for index, row in train_df_with_no_cat.iterrows():
-    train_df.loc[train_df.train_id == index, ['category_0']] = pred_train_df[i]
-    i += 1
+for cat_num in range(2):
+    i = 0
+    cat_name = 'category_{}'.format(cat_num)
+    for index, row in train_df_with_no_cat_list[cat_num].iterrows():
+        train_df.loc[train_df.train_id == index, [cat_name]] = pred_train_dfs[cat_num][i]
+        i += 1
 print(train_df.loc[122])
 
 
@@ -722,37 +752,48 @@ train_df.head()
 
 # In[*]
 
-# save the csvs
-train_df.to_csv('data/mercari/train.1.csv')
-test_df.to_csv('data/mercari/test.1.csv')
-print('transformed train and test data saved.')
+# # save the csvs
+# train_df.to_csv('data/mercari/train.1.csv')
+# test_df.to_csv('data/mercari/test.1.csv')
+# print('transformed train and test data saved.')
 
 
 # In[*]
 
-# save the classifiers
+# # save the classifiers
 from sklearn.externals import joblib
-joblib.dump(clfs[0], 'data/mercari/clf_0.pkl')
-joblib.dump(clfs[1], 'data/mercari/clf_1.pkl')
-print('model is saved')
+# joblib.dump(clfs[0], 'data/mercari/clf_0.pkl')
+# joblib.dump(clfs[1], 'data/mercari/clf_1.pkl')
+# print('model is saved')
 
 
 # In[*]
 
-# # load the csv and the model
-# clf = joblib.load('data/mercari/clf.pkl')
-# train_df = pd.read_csv('data/mercari/train.1.csv')
-# test_df = pd.read_csv('data/mercari/test.1.csv')
+# load the csv and the model
+clfs= [0, 0]
+clfs[0] = joblib.load('data/mercari/clf_0.pkl')
+clfs[1] = joblib.load('data/mercari/clf_1.pkl')
+
+
+# In[*]
+
+train_df = pd.read_csv('data/mercari/train.1.csv')
+test_df = pd.read_csv('data/mercari/test.1.csv')
+
+
+# In[*]
+
+train_df.head()
 
 
 # In[*]
 
 # this is needed because the dtypes of name_seq and item_description_seq is wrong
-# import ast
-# train_df['name_seq'] = train_df['name_seq'].apply(ast.literal_eval)
-# train_df['item_description_seq'] = train_df['item_description_seq'].apply(ast.literal_eval)
-# test_df['name_seq'] = test_df['name_seq'].apply(ast.literal_eval)
-# test_df['item_description_seq'] = test_df['item_description_seq'].apply(ast.literal_eval)
+import ast
+train_df['name_seq'] = train_df['name_seq'].apply(ast.literal_eval)
+train_df['item_description_seq'] = train_df['item_description_seq'].apply(ast.literal_eval)
+test_df['name_seq'] = test_df['name_seq'].apply(ast.literal_eval)
+test_df['item_description_seq'] = test_df['item_description_seq'].apply(ast.literal_eval)
 
 
 # In[*]
