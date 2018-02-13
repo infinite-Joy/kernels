@@ -285,12 +285,12 @@ category_df.sample(2)
 
 # In[*]
 
-predict_category_df = category_df[pd.isnull(category_df['category_name'])]
-train_test_categry_df = category_df[pd.notnull(category_df['category_name'])]
-train_categry_df, test_categry_df = train_test_split(train_test_categry_df, test_size=0.2, random_state=42)
-print('separated into predict, train and test')
-print(category_df.shape, predict_category_df.shape, train_categry_df.shape, test_categry_df.shape)
-print(predict_category_df.shape[0] + train_categry_df.shape[0] + test_categry_df.shape[0])
+# predict_category_df = category_df[pd.isnull(category_df['category_name'])]
+# train_test_categry_df = category_df[pd.notnull(category_df['category_name'])]
+# train_categry_df, test_categry_df = train_test_split(train_test_categry_df, test_size=0.2, random_state=42)
+# print('separated into predict, train and test')
+# print(category_df.shape, predict_category_df.shape, train_categry_df.shape, test_categry_df.shape)
+# print(predict_category_df.shape[0] + train_categry_df.shape[0] + test_categry_df.shape[0])
 
 
 # In[*]
@@ -313,6 +313,7 @@ predict_train_test_dict = {}
 
 predict_train_test_dict['category_0'] = predict_train_test(category_df, 'category_0')
 predict_train_test_dict['category_1'] = predict_train_test(category_df, 'category_1')
+predict_train_test_dict['category_2'] = predict_train_test(category_df, 'category_2')
 
 
 # In[*]
@@ -366,7 +367,7 @@ for i in range(number_of_cats):
     )
 
 
-X_train_category_df_list[0].head()
+print(len(X_train_category_df_list))
 
 
 # In[*]
@@ -478,12 +479,85 @@ def create_classifiers(number_of_cats):
 
 # In[*]
 
-clfs = [c for c in create_classifiers(number_of_cats)]
+# # load the csv and the model
+# from sklearn.externals import joblib
+# clfs= [0, 0, 0]
+# clfs[0] = joblib.load('data/mercari/clf_0.pkl')
+# clfs[1] = joblib.load('data/mercari/clf_1.pkl')
+
+
+# In[*]
+
+# from sklearn.externals import joblib
+# t0 = time()
+# i = 0
+# for clf in create_classifiers(1):
+#     clf.fit(x_trains[2], y_train_category_df_list[2])
+#     pred = clf.predict(x_tests[2])
+#     score = metrics.accuracy_score(y_test, pred)
+#     print("accuracy:   %0.3f" % score)
+                                                                                 
+#     print("classification report:")
+#     print(metrics.classification_report(y_test, pred, target_names=target_names))          
+                                                                                 
+#     print("confusion matrix:")
+#     print(metrics.confusion_matrix(y_test, pred)) 
+#     clf = fit_and_benchmark(clf, 
+#                             x_trains[2], y_train_category_df_list[2], 
+#                             x_tests[2], y_test_category_df_list[2], 
+#                             train_cat_transforms[i].classes_)
+#     i += 1
+#     joblib.dump(clf, 'data/mercari/clf_{}.pkl'.format(i))
+# classification_time = time() - t0
+# print("classifiction time:  %0.3fs" % classification_time)
+
+
+# In[*]
+
+x_trains[2].shape
+
+
+# In[*]
+
+y_train_category_df_list[2].shape
+
+
+# There are a lot go features so we will try PCA
+
+# In[*]
+
+from sklearn.externals import joblib
 t0 = time()
-for i in range(number_of_cats):
-    clfs[i] = fit_and_benchmark(clfs[i], x_trains[i], y_train_category_df_list[i], x_tests[i], y_test_category_df_list[i], train_cat_transforms[i].classes_)
+i = 2
+clfs = [clf for clf in create_classifiers(3)]
+clf = fit_and_benchmark(clfs[i], 
+                        x_trains[i], y_train_category_df_list[i], 
+                        x_tests[i], y_test_category_df_list[i], 
+                        train_cat_transforms[i].classes_)
+joblib.dump(clf, 'data/mercari/clf_{}.pkl'.format(i))
 classification_time = time() - t0
 print("classifiction time:  %0.3fs" % classification_time)
+
+
+# In[*]
+
+# from sklearn.externals import joblib
+# t0 = time()
+# i = 0
+# for clf in create_classifiers(number_of_cats):
+#     clf = fit_and_benchmark(clf, 
+#                             x_trains[i], y_train_category_df_list[i], 
+#                             x_tests[i], y_test_category_df_list[i], 
+#                             train_cat_transforms[i].classes_)
+#     i += 1
+#     joblib.dump(clf, 'data/mercari/clf_{}.pkl'.format(i))
+# classification_time = time() - t0
+# print("classifiction time:  %0.3fs" % classification_time)
+
+
+# In[*]
+
+get_ipython().run_cell_magic('bash', '', 'echo "classifiers saved: $(ls data/mercari/clf_* | wc -l)"')
 
 
 # ### fill the category name for the missing values and build the matrix
@@ -752,19 +826,19 @@ train_df.head()
 
 # In[*]
 
-# # save the csvs
-# train_df.to_csv('data/mercari/train.1.csv')
-# test_df.to_csv('data/mercari/test.1.csv')
-# print('transformed train and test data saved.')
+# save the csvs
+train_df.to_csv('data/mercari/train.1.csv')
+test_df.to_csv('data/mercari/test.1.csv')
+print('transformed train and test data saved.')
 
 
 # In[*]
 
 # # save the classifiers
 from sklearn.externals import joblib
-# joblib.dump(clfs[0], 'data/mercari/clf_0.pkl')
-# joblib.dump(clfs[1], 'data/mercari/clf_1.pkl')
-# print('model is saved')
+joblib.dump(clfs[0], 'data/mercari/clf_0.pkl')
+joblib.dump(clfs[1], 'data/mercari/clf_1.pkl')
+print('model is saved')
 
 
 # In[*]
@@ -820,9 +894,14 @@ y_train = train_df['price']
 
 # In[*]
 
-x_train_1 = train_df[['item_condition_id', 'category_0', 'shipping']]
+# train_df[train_df['category_2'].isnull()]
+
+
+# In[*]
+
+x_train_1 = train_df[['item_condition_id', 'category_0', 'category_1', 'shipping']]
 y_train_1 = train_df['price']
-x_test_1 = test_df[['item_condition_id', 'category_0', 'shipping']]
+x_test_1 = test_df[['item_condition_id', 'category_0', 'category_1', 'shipping']]
 
 
 # In[*]
