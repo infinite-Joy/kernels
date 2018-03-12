@@ -72,6 +72,7 @@ embed_size = 300
 # In[*]
 
 
+print('tokenise and sequencing.')
 tokenizer = text.Tokenizer(num_words=max_features)
 tokenizer.fit_on_texts(list(X_train) + list(X_test))
 X_train = tokenizer.texts_to_sequences(X_train)
@@ -90,12 +91,14 @@ def get_coefs(word, *arr):
 # In[*]
 
 
+print('create embedding index')
 embeddings_index = dict(get_coefs(*o.rstrip().rsplit(' ')) for o in open(EMBEDDING_FILE))
 
 
 # In[*]
 
 
+print('create embedding matrix')
 word_index = tokenizer.word_index
 nb_words = min(max_features, len(word_index))
 embedding_matrix = np.zeros((nb_words, embed_size))
@@ -113,10 +116,10 @@ class RocAucEvaluation(Callback):
     def __init__(self, validation_data=(), interval=1):
         super().__init__()
         self.interval = interval
-        self.X_val, self.y_val = varslidation_data
+        self.X_val, self.y_val = validation_data
         
     def on_epoch_end(self, epoch, logs={}):
-        if epock % self.interval == 0:
+        if epoch % self.interval == 0:
             y_pred = self.model.predict(self.X_val, verbose=0)
             score = roc_auc_score(self.y_val, y_pred)
             print('\n ROC_AUC - epoch: {} - score: {:0.6f} \n'.format(epoch+1, score))
@@ -125,6 +128,7 @@ class RocAucEvaluation(Callback):
 # In[*]
 
 
+print('define and create model')
 def get_model():
     inp = Input(shape=(maxlen,))
     x = Embedding(max_features, embed_size, weights=[embedding_matrix])(inp)
@@ -154,6 +158,7 @@ epochs = 2
 # In[*]
 
 
+print('split data into training and validation')
 X_train, X_validation, y_train, y_validation = train_test_split(x_train, y_train, train_size=0.95, random_state=233)
 RocAuc = RocAucEvaluation(validation_data=(X_validation, y_validation), interval=1)
 
@@ -161,6 +166,7 @@ RocAuc = RocAucEvaluation(validation_data=(X_validation, y_validation), interval
 # In[*]
 
 
+print('fit the model')
 hist = model.fit(
     X_train, y_train, batch_size=batch_size, epochs=epochs, 
     validation_data=(X_validation, y_validation), callbacks=[RocAuc], verbose=2)
