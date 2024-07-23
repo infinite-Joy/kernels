@@ -1,0 +1,19 @@
+venue_research:
+  description: Research and propose 3 suitable destination wedding venues
+  expected_output: A list of 3 venue options with details on location, capacity, amenities, and estimated costs
+
+travel_planning:
+  description: Create a travel and accommodation plan for a wedding party of 100 guests
+  expected_output: A comprehensive travel itinerary including flight options, hotel recommendations, and transportation arrangements for 100 guests
+
+event_timeline:
+  description: Develop a detailed timeline and checklist for the wedding day events
+  expected_output: A minute-by-minute schedule of the wedding day, including a checklist of all necessary preparations and activities
+
+menu_design:
+  description: Design a menu that incorporates local cuisine and caters to dietary restrictions
+  expected_output: A complete menu proposal including appetizers, main courses, desserts, and beverage options, with alternatives for common dietary restrictions
+
+budget_management:
+  description: Create a comprehensive budget breakdown and tracking system
+  expected_output: A detailed budget spreadsheet with categories for all wedding expenses, including contingencies and a system for tracking actual vs. projected costs

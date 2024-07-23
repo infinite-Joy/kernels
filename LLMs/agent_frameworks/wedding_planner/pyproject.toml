@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "wedding_planner"
+version = "0.1.0"
+description = "wedding_planner using crewAI"
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<=3.13"
+crewai = { extras = ["tools"], version = "^0.35.8" }
+ollama = "^0.2.1"
+
+[tool.poetry.scripts]
+wedding_planner = "wedding_planner.main:run"
+train = "wedding_planner.main:train"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
