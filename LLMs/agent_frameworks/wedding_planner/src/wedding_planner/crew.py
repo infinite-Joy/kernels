@@ -10,7 +10,7 @@ from wedding_planner.tools.custom_tool import SearchCSV
 # os.environ["OPENAI_API_KEY"] = "NA"
 
 llm = Ollama(
-    model = "gemma:2b",
+    model = "llama3.1",
     base_url = "http://localhost:11434")
 
 
@@ -49,10 +49,10 @@ class DestinationWeddingPlannerCrew():
         return Agent(
             config=self.agents_config['venue_coordinator'],
             tools=[search_csv],
-			# llm=llm,
-            llm=ChatOpenAI(model_name="gpt-4o", temperature=0.2),
-            function_calling_llm=ChatOpenAI(model_name="gpt-4o", temperature=0.2),
-            # function_calling_llm=llm,
+			llm=llm,
+            # llm=ChatOpenAI(model_name="gpt-4o", temperature=0.2),
+            # function_calling_llm=ChatOpenAI(model_name="gpt-4o", temperature=0.2),
+            function_calling_llm=llm,
             verbose=True
         )
 

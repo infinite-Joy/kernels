@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import sys
 from wedding_planner.crew import DestinationWeddingPlannerCrew
+import os
+
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 
 def run():
