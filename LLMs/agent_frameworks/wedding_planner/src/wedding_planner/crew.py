@@ -14,29 +14,7 @@ llm = Ollama(
     base_url = "http://localhost:11434")
 
 
-# country_venue_price_tool = CSVSearchTool()
 search_csv = SearchCSV()
-#country_venue_price_tool = CSVSearchTool(
-#    config=dict(
-#        llm=dict(
-#            provider="ollama", # or google, openai, anthropic, llama2, ...
-#            config=dict(
-#                model="gemma:2b",
-#                # temperature=0.5,
-#                # top_p=1,
-#                # stream=true,
-#            ),
-#        ),
-#        embedder=dict(
-#            provider="ollama", # or openai, ollama, ...
-#            config=dict(
-#                model="gemma:2b",
-#                # task_type="retrieval_document",
-#                # title="Embeddings",
-#            ),
-#        ),
-#    )
-#)
 
 @CrewBase
 class DestinationWeddingPlannerCrew():

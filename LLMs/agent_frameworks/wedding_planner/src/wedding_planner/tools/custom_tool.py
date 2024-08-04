@@ -4,7 +4,8 @@ from crewai_tools import BaseTool
 class SearchCSV(BaseTool):
     name: str = "Search a CSV's content"
     description: str = (
-        "Search through the CSV content to find the best wedding venue"
+        "Search through the CSV content to find the "
+        "best wedding venue"
     )
 
     def _run(self, country: str, style: str, budget: int) -> str:
