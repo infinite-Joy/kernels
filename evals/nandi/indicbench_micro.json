@@ -1,0 +1,856 @@
+{
+  "meta": {
+    "name": "IndicBench-Micro",
+    "version": "1.0",
+    "description": "India-specific evaluation dataset for small language models. Tests real-world failure modes: code-mixing, cultural knowledge, Indic NLU, tokenization, and domain tasks.",
+    "categories": [
+      "code_mixing",
+      "cultural_knowledge",
+      "indic_nlu",
+      "translation",
+      "number_systems",
+      "agriculture",
+      "legal_governance",
+      "healthcare",
+      "script_generation",
+      "robustness"
+    ],
+    "num_samples": 100,
+    "created": "2026-04-28"
+  },
+
+  "tasks": [
+
+    {
+      "id": "CM-001",
+      "category": "code_mixing",
+      "subcategory": "hinglish_understanding",
+      "task": "next_token_quality",
+      "prompt": "Yaar, mujhe lagta hai ki yeh startup ka business model",
+      "expected_style": "continuation in natural Hinglish mixing Hindi and English",
+      "language": "hi-en",
+      "notes": "Tests if model can continue Hinglish naturally without switching to pure Hindi or pure English"
+    },
+    {
+      "id": "CM-002",
+      "category": "code_mixing",
+      "subcategory": "hinglish_understanding",
+      "task": "next_token_quality",
+      "prompt": "Maine kal ek naya phone liya, uska camera toh",
+      "expected_style": "natural Hinglish continuation about phone features",
+      "language": "hi-en",
+      "notes": "Consumer tech context in Hinglish"
+    },
+    {
+      "id": "CM-003",
+      "category": "code_mixing",
+      "subcategory": "tanglish_understanding",
+      "task": "next_token_quality",
+      "prompt": "Naan oru software engineer, daily office la",
+      "expected_style": "continuation in Tamil-English mix",
+      "language": "ta-en",
+      "notes": "Tamil-English code mixing common in IT sector"
+    },
+    {
+      "id": "CM-004",
+      "category": "code_mixing",
+      "subcategory": "benglish_understanding",
+      "task": "next_token_quality",
+      "prompt": "Amar school er friend amake call korlo, bole ki",
+      "expected_style": "natural Bengali-English continuation",
+      "language": "bn-en",
+      "notes": "Bengali-English code switching"
+    },
+    {
+      "id": "CM-005",
+      "category": "code_mixing",
+      "subcategory": "marathi_english",
+      "task": "next_token_quality",
+      "prompt": "Mumbai madhe traffic khup asta, especially Western Express Highway var",
+      "expected_style": "natural Marathi-English continuation about Mumbai",
+      "language": "mr-en",
+      "notes": "Marathi-English code switching about urban life"
+    },
+    {
+      "id": "CM-006",
+      "category": "code_mixing",
+      "subcategory": "kannada_english",
+      "task": "next_token_quality",
+      "prompt": "Nanu Bangalore alli software company alli kelsa maadtidini, nanna team",
+      "expected_style": "natural Kannada-English continuation about work",
+      "language": "kn-en",
+      "notes": "Kannada-English mix common in Bangalore tech scene"
+    },
+    {
+      "id": "CM-007",
+      "category": "code_mixing",
+      "subcategory": "gujarati_english",
+      "task": "next_token_quality",
+      "prompt": "Amdavad ma business karvanu hoy toh sabathi pehla",
+      "expected_style": "natural Gujarati-English business context",
+      "language": "gu-en",
+      "notes": "Gujarati-English mix in business context"
+    },
+    {
+      "id": "CM-008",
+      "category": "code_mixing",
+      "subcategory": "telugu_english",
+      "task": "next_token_quality",
+      "prompt": "Hyderabad lo IT companies chaala ekkuva, especially HITEC City lo",
+      "expected_style": "natural Telugu-English continuation",
+      "language": "te-en",
+      "notes": "Telugu-English code mixing about Hyderabad tech"
+    },
+    {
+      "id": "CM-009",
+      "category": "code_mixing",
+      "subcategory": "punjabi_english",
+      "task": "next_token_quality",
+      "prompt": "Canada jaana hai par visa process bahut",
+      "expected_style": "natural Punjabi-Hindi-English continuation about immigration",
+      "language": "pa-hi-en",
+      "notes": "Triple code mixing common in Punjab"
+    },
+    {
+      "id": "CM-010",
+      "category": "code_mixing",
+      "subcategory": "formal_hinglish",
+      "task": "next_token_quality",
+      "prompt": "Aaj ki meeting mein humne quarterly targets discuss kiye aur management ne",
+      "expected_style": "corporate Hinglish continuation",
+      "language": "hi-en",
+      "notes": "Formal workplace Hinglish"
+    },
+
+    {
+      "id": "CK-001",
+      "category": "cultural_knowledge",
+      "subcategory": "festivals",
+      "task": "perplexity",
+      "text": "दीवाली के दिन लोग अपने घरों में दीये जलाते हैं और लक्ष्मी पूजा करते हैं।",
+      "language": "hi",
+      "notes": "Diwali cultural knowledge in Hindi"
+    },
+    {
+      "id": "CK-002",
+      "category": "cultural_knowledge",
+      "subcategory": "festivals",
+      "task": "perplexity",
+      "text": "ওনাম কেরালার সবচেয়ে বড় উৎসব, যেখানে মানুষ পূক্কালম সাজায় এবং ওনাসদ্যা খায়।",
+      "language": "bn",
+      "notes": "Onam described in Bengali — cross-cultural knowledge"
+    },
+    {
+      "id": "CK-003",
+      "category": "cultural_knowledge",
+      "subcategory": "food",
+      "task": "next_token_quality",
+      "prompt": "दक्षिण भारत का प्रसिद्ध व्यंजन डोसा",
+      "expected_style": "continuation about dosa preparation or varieties",
+      "language": "hi",
+      "notes": "Indian food knowledge"
+    },
+    {
+      "id": "CK-004",
+      "category": "cultural_knowledge",
+      "subcategory": "geography",
+      "task": "perplexity",
+      "text": "కేరళలో బ్యాక్‌వాటర్స్ చాలా ప్రసిద్ధం, అల్లెప్పీ నుండి హౌస్‌బోట్ ప్రయాణం ఒక అద్భుతమైన అనుభవం.",
+      "language": "te",
+      "notes": "Kerala backwaters described in Telugu"
+    },
+    {
+      "id": "CK-005",
+      "category": "cultural_knowledge",
+      "subcategory": "social_systems",
+      "task": "perplexity",
+      "text": "भारत में संयुक्त परिवार प्रणाली आज भी कई जगहों पर प्रचलित है, जहाँ तीन-चार पीढ़ियाँ एक साथ रहती हैं।",
+      "language": "hi",
+      "notes": "Joint family system knowledge"
+    },
+    {
+      "id": "CK-006",
+      "category": "cultural_knowledge",
+      "subcategory": "education",
+      "task": "next_token_quality",
+      "prompt": "IIT JEE की तैयारी के लिए कोटा शहर",
+      "expected_style": "continuation about Kota coaching culture",
+      "language": "hi",
+      "notes": "Indian education and coaching culture"
+    },
+    {
+      "id": "CK-007",
+      "category": "cultural_knowledge",
+      "subcategory": "sports",
+      "task": "perplexity",
+      "text": "IPL ने भारतीय क्रिकेट को पूरी तरह बदल दिया है, छोटे शहरों के खिलाड़ियों को भी मौका मिलता है।",
+      "language": "hi",
+      "notes": "IPL and Indian cricket culture"
+    },
+    {
+      "id": "CK-008",
+      "category": "cultural_knowledge",
+      "subcategory": "cinema",
+      "task": "next_token_quality",
+      "prompt": "தமிழ் சினிமா உலகில் ரஜினிகாந்த்",
+      "expected_style": "continuation about Tamil cinema in Tamil",
+      "language": "ta",
+      "notes": "Tamil cinema cultural context"
+    },
+    {
+      "id": "CK-009",
+      "category": "cultural_knowledge",
+      "subcategory": "weddings",
+      "task": "perplexity",
+      "text": "ಭಾರತೀಯ ಮದುವೆಗಳಲ್ಲಿ ಮೆಹೆಂದಿ, ಸಂಗೀತ, ಹಲ್ದಿ ಮತ್ತು ಬಾರಾತ್ ಎಂಬ ಹಲವಾರು ಕಾರ್ಯಕ್ರಮಗಳು ನಡೆಯುತ್ತವೆ.",
+      "language": "kn",
+      "notes": "Indian wedding customs in Kannada"
+    },
+    {
+      "id": "CK-010",
+      "category": "cultural_knowledge",
+      "subcategory": "transport",
+      "task": "next_token_quality",
+      "prompt": "मुंबई की लोकल ट्रेन में सुबह के समय",
+      "expected_style": "continuation about Mumbai local train experience",
+      "language": "hi",
+      "notes": "Mumbai local train culture"
+    },
+
+    {
+      "id": "NLU-001",
+      "category": "indic_nlu",
+      "subcategory": "sentiment",
+      "task": "perplexity",
+      "text": "यह फ़िल्म बहुत बकवास थी, पैसे और समय दोनों बर्बाद हुए।",
+      "language": "hi",
+      "sentiment": "negative",
+      "notes": "Negative sentiment in Hindi — colloquial"
+    },
+    {
+      "id": "NLU-002",
+      "category": "indic_nlu",
+      "subcategory": "sentiment",
+      "task": "perplexity",
+      "text": "வாழ்க்கையில் முதல் முறையாக கேரளா போனேன், மிகவும் அழகான இடம்.",
+      "language": "ta",
+      "sentiment": "positive",
+      "notes": "Positive travel sentiment in Tamil"
+    },
+    {
+      "id": "NLU-003",
+      "category": "indic_nlu",
+      "subcategory": "sentiment",
+      "task": "perplexity",
+      "text": "এই রেস্তোরাঁর খাবার একদম মাঝারি, দামের তুলনায় কিছুই বিশেষ নয়।",
+      "language": "bn",
+      "sentiment": "neutral_negative",
+      "notes": "Lukewarm restaurant review in Bengali"
+    },
+    {
+      "id": "NLU-004",
+      "category": "indic_nlu",
+      "subcategory": "intent",
+      "task": "perplexity",
+      "text": "ભાઈ, આ ફોનનો રેટ શું છે? થોડો ઓછો કરો ને.",
+      "language": "gu",
+      "intent": "price_negotiation",
+      "notes": "Bargaining intent in Gujarati"
+    },
+    {
+      "id": "NLU-005",
+      "category": "indic_nlu",
+      "subcategory": "intent",
+      "task": "perplexity",
+      "text": "ମୋ ଆଧାର କାର୍ଡ଼ରେ ଠିକଣା ବଦଳାଇବାକୁ କ'ଣ କରିବାକୁ ପଡ଼ିବ?",
+      "language": "or",
+      "intent": "government_service_query",
+      "notes": "Aadhaar address change query in Odia"
+    },
+    {
+      "id": "NLU-006",
+      "category": "indic_nlu",
+      "subcategory": "comprehension",
+      "task": "perplexity",
+      "text": "ਕਿਸਾਨਾਂ ਨੇ ਆਪਣੀ ਫ਼ਸਲ ਦੀ ਸਹੀ ਕੀਮਤ ਲਈ ਮੰਡੀ ਵਿੱਚ ਪ੍ਰਦਰਸ਼ਨ ਕੀਤਾ।",
+      "language": "pa",
+      "notes": "Farmer protest context in Punjabi"
+    },
+    {
+      "id": "NLU-007",
+      "category": "indic_nlu",
+      "subcategory": "comprehension",
+      "task": "perplexity",
+      "text": "మా ఊళ్ళో ఇప్పుడు ఇంటర్నెట్ వచ్చింది, పిల్లలు ఆన్‌లైన్ క్లాసులు చూస్తున్నారు.",
+      "language": "te",
+      "notes": "Rural digital transformation in Telugu"
+    },
+    {
+      "id": "NLU-008",
+      "category": "indic_nlu",
+      "subcategory": "comprehension",
+      "task": "perplexity",
+      "text": "केरळमध्ये मान्सूनच्या काळात भूस्खलनाचा धोका वाढतो, त्यामुळे सरकारने अलर्ट जारी केला आहे.",
+      "language": "mr",
+      "notes": "Kerala monsoon landslide alert in Marathi"
+    },
+    {
+      "id": "NLU-009",
+      "category": "indic_nlu",
+      "subcategory": "sarcasm",
+      "task": "perplexity",
+      "text": "वाह, क्या सड़कें बनाई हैं सरकार ने, बारिश में तो स्विमिंग पूल बन जाती हैं।",
+      "language": "hi",
+      "sentiment": "sarcastic_negative",
+      "notes": "Sarcasm about Indian roads — tests pragmatic understanding"
+    },
+    {
+      "id": "NLU-010",
+      "category": "indic_nlu",
+      "subcategory": "formality_register",
+      "task": "perplexity",
+      "text": "आदरणीय महोदय, मैं आपसे विनम्र निवेदन करता हूँ कि मेरे आवेदन पर शीघ्र कार्रवाई की जाए।",
+      "language": "hi",
+      "notes": "Formal Hindi application style — tests register awareness"
+    },
+
+    {
+      "id": "TR-001",
+      "category": "translation",
+      "subcategory": "en_to_hi",
+      "task": "next_token_quality",
+      "prompt": "Translate to Hindi: The Panchayat decided to build a new road connecting the village to the main highway.",
+      "expected_style": "accurate Hindi translation with correct governance terms",
+      "language": "en-hi",
+      "notes": "Tests governance vocabulary translation"
+    },
+    {
+      "id": "TR-002",
+      "category": "translation",
+      "subcategory": "hi_to_en",
+      "task": "next_token_quality",
+      "prompt": "Translate to English: राशन कार्ड बनवाने के लिए आधार कार्ड और निवास प्रमाण पत्र जरूरी है।",
+      "expected_style": "accurate English translation with Indian document names preserved",
+      "language": "hi-en",
+      "notes": "Government document context — should preserve terms like Aadhaar, ration card"
+    },
+    {
+      "id": "TR-003",
+      "category": "translation",
+      "subcategory": "ta_to_en",
+      "task": "next_token_quality",
+      "prompt": "Translate to English: சென்னையில் மெட்ரோ ரயில் சேவை விரிவாக்கம் செய்யப்பட்டுள்ளது.",
+      "expected_style": "accurate English translation about Chennai Metro",
+      "language": "ta-en",
+      "notes": "Tamil to English infrastructure context"
+    },
+    {
+      "id": "TR-004",
+      "category": "translation",
+      "subcategory": "cross_indic",
+      "task": "next_token_quality",
+      "prompt": "Translate from Hindi to Bengali: कोलकाता में दुर्गा पूजा का उत्सव बहुत धूमधाम से मनाया जाता है।",
+      "expected_style": "Bengali translation of Durga Puja context",
+      "language": "hi-bn",
+      "notes": "Cross-Indic translation — hardest category"
+    },
+    {
+      "id": "TR-005",
+      "category": "translation",
+      "subcategory": "cross_indic",
+      "task": "next_token_quality",
+      "prompt": "Translate from Telugu to Kannada: హైదరాబాద్ బిర్యానీ చాలా ప్రసిద్ధం, ప్రతి ఒక్కరూ దాన్ని ఇష్టపడతారు.",
+      "expected_style": "Kannada translation about Hyderabadi biryani",
+      "language": "te-kn",
+      "notes": "Dravidian-to-Dravidian translation"
+    },
+
+    {
+      "id": "NS-001",
+      "category": "number_systems",
+      "subcategory": "lakh_crore",
+      "task": "next_token_quality",
+      "prompt": "इस कंपनी का कुल राजस्व पिछले साल 450 करोड़ रुपये था, जो",
+      "expected_style": "continuation using Indian number system (lakh/crore) naturally",
+      "language": "hi",
+      "notes": "Tests Indian number system understanding"
+    },
+    {
+      "id": "NS-002",
+      "category": "number_systems",
+      "subcategory": "lakh_crore",
+      "task": "perplexity",
+      "text": "भारत सरकार ने शिक्षा के लिए 1.5 लाख करोड़ रुपये का बजट आवंटित किया है।",
+      "language": "hi",
+      "notes": "Indian budget amounts in lakh crore"
+    },
+    {
+      "id": "NS-003",
+      "category": "number_systems",
+      "subcategory": "mixed_numbers",
+      "task": "perplexity",
+      "text": "২০২৫ সালে ভারতে প্রায় ৮০ কোটি মানুষ ইন্টারনেট ব্যবহার করে।",
+      "language": "bn",
+      "notes": "Bengali numerals with Indian units"
+    },
+    {
+      "id": "NS-004",
+      "category": "number_systems",
+      "subcategory": "devanagari_numerals",
+      "task": "perplexity",
+      "text": "इस गाँव की जनसंख्या लगभग ५,४३२ है और यहाँ २ प्राथमिक विद्यालय हैं।",
+      "language": "hi",
+      "notes": "Devanagari numerals — tests tokenizer handling"
+    },
+    {
+      "id": "NS-005",
+      "category": "number_systems",
+      "subcategory": "pincode_phone",
+      "task": "perplexity",
+      "text": "मेरा पिनकोड 400001 है और मोबाइल नंबर +91 98765 43210 है।",
+      "language": "hi",
+      "notes": "Indian phone number and pincode format"
+    },
+
+    {
+      "id": "AG-001",
+      "category": "agriculture",
+      "subcategory": "crop_advisory",
+      "task": "next_token_quality",
+      "prompt": "खरीफ के मौसम में धान की फसल में",
+      "expected_style": "agricultural advisory continuation about rice/paddy in kharif season",
+      "language": "hi",
+      "notes": "Kharif season paddy farming — tests agri vocabulary"
+    },
+    {
+      "id": "AG-002",
+      "category": "agriculture",
+      "subcategory": "crop_advisory",
+      "task": "perplexity",
+      "text": "రబీ సీజన్‌లో గోధుమ పంట వేయడానికి నవంబర్ చివరి నుండి డిసెంబర్ మొదటి వారం వరకు విత్తనం చల్లాలి.",
+      "language": "te",
+      "notes": "Rabi wheat sowing advisory in Telugu"
+    },
+    {
+      "id": "AG-003",
+      "category": "agriculture",
+      "subcategory": "pest_disease",
+      "task": "next_token_quality",
+      "prompt": "कपास की फसल में सफेद मक्खी का प्रकोप होने पर किसान को",
+      "expected_style": "pest management advice for whitefly in cotton",
+      "language": "hi",
+      "notes": "Pest management in cotton — domain-specific Hindi"
+    },
+    {
+      "id": "AG-004",
+      "category": "agriculture",
+      "subcategory": "government_schemes",
+      "task": "perplexity",
+      "text": "ପ୍ରଧାନମନ୍ତ୍ରୀ କିସାନ ସମ୍ମାନ ନିଧି ଯୋଜନାରେ ପ୍ରତ୍ୟେକ କୃଷକ ପରିବାରକୁ ବାର୍ଷିକ ୬,୦୦୦ ଟଙ୍କା ମିଳେ।",
+      "language": "or",
+      "notes": "PM-KISAN scheme in Odia with Odia numerals"
+    },
+    {
+      "id": "AG-005",
+      "category": "agriculture",
+      "subcategory": "mandi_prices",
+      "task": "next_token_quality",
+      "prompt": "आज मंडी में गेहूं का भाव",
+      "expected_style": "mandi price discussion continuation",
+      "language": "hi",
+      "notes": "Agricultural market terminology"
+    },
+    {
+      "id": "AG-006",
+      "category": "agriculture",
+      "subcategory": "weather_crop",
+      "task": "perplexity",
+      "text": "ગુજરાતમાં ચોમાસું મોડું આવવાથી મગફળીના વાવેતરમાં વિલંબ થયો છે.",
+      "language": "gu",
+      "notes": "Delayed monsoon impact on groundnut in Gujarati"
+    },
+    {
+      "id": "AG-007",
+      "category": "agriculture",
+      "subcategory": "dairy",
+      "task": "perplexity",
+      "text": "ਪੰਜਾਬ ਵਿੱਚ ਡੇਅਰੀ ਫਾਰਮਿੰਗ ਕਿਸਾਨਾਂ ਦੀ ਆਮਦਨ ਦਾ ਮੁੱਖ ਸਰੋਤ ਹੈ, ਮੱਝ ਦੇ ਦੁੱਧ ਦੀ ਮੰਗ ਬਹੁਤ ਜ਼ਿਆਦਾ ਹੈ।",
+      "language": "pa",
+      "notes": "Dairy farming in Punjab — Punjabi"
+    },
+
+    {
+      "id": "LG-001",
+      "category": "legal_governance",
+      "subcategory": "fir_process",
+      "task": "next_token_quality",
+      "prompt": "पुलिस स्टेशन में FIR दर्ज कराने के लिए सबसे पहले",
+      "expected_style": "step-by-step FIR filing process",
+      "language": "hi",
+      "notes": "Indian FIR process knowledge"
+    },
+    {
+      "id": "LG-002",
+      "category": "legal_governance",
+      "subcategory": "rti",
+      "task": "perplexity",
+      "text": "RTI अधिनियम 2005 के तहत कोई भी नागरिक सरकारी विभाग से सूचना माँग सकता है, इसके लिए दस रुपये का शुल्क देना होता है।",
+      "language": "hi",
+      "notes": "RTI Act knowledge"
+    },
+    {
+      "id": "LG-003",
+      "category": "legal_governance",
+      "subcategory": "panchayat",
+      "task": "perplexity",
+      "text": "ত্রিস্তর পঞ্চায়েত ব্যবস্থায় গ্রাম পঞ্চায়েত, পঞ্চায়েত সমিতি এবং জেলা পরিষদ থাকে।",
+      "language": "bn",
+      "notes": "Three-tier Panchayat system in Bengali"
+    },
+    {
+      "id": "LG-004",
+      "category": "legal_governance",
+      "subcategory": "consumer_rights",
+      "task": "perplexity",
+      "text": "ಗ್ರಾಹಕ ಸಂರಕ್ಷಣಾ ಕಾಯ್ದೆ 2019 ರ ಪ್ರಕಾರ, ಗ್ರಾಹಕರು ಆನ್‌ಲೈನ್ ಖರೀದಿಯ ಬಗ್ಗೆ ದೂರು ನೀಡಬಹುದು.",
+      "language": "kn",
+      "notes": "Consumer Protection Act in Kannada"
+    },
+    {
+      "id": "LG-005",
+      "category": "legal_governance",
+      "subcategory": "property",
+      "task": "next_token_quality",
+      "prompt": "जमीन की रजिस्ट्री करवाने के लिए तहसील कार्यालय में",
+      "expected_style": "land registration process continuation",
+      "language": "hi",
+      "notes": "Land registry process — Indian administrative vocabulary"
+    },
+
+    {
+      "id": "HC-001",
+      "category": "healthcare",
+      "subcategory": "ayurveda",
+      "task": "next_token_quality",
+      "prompt": "आयुर्वेद में वात, पित्त और कफ",
+      "expected_style": "continuation about Ayurvedic doshas",
+      "language": "hi",
+      "notes": "Traditional Indian medicine knowledge"
+    },
+    {
+      "id": "HC-002",
+      "category": "healthcare",
+      "subcategory": "maternal_health",
+      "task": "perplexity",
+      "text": "ગર્ભાવસ્થા દરમિયાન આયર્ન અને ફોલિક એસિડની ગોળીઓ નિયમિત લેવી જોઈએ, આ સરકારી દવાખાનામાં મફતમાં મળે છે.",
+      "language": "gu",
+      "notes": "Maternal health advice in Gujarati — government healthcare context"
+    },
+    {
+      "id": "HC-003",
+      "category": "healthcare",
+      "subcategory": "rural_health",
+      "task": "perplexity",
+      "text": "గ్రామీణ ప్రాంతాల్లో ప్రాథమిక ఆరోగ్య కేంద్రం లేకపోవడం వల్ల ప్రజలు జిల్లా ఆసుపత్రికి వెళ్ళాలి.",
+      "language": "te",
+      "notes": "Rural healthcare access gap in Telugu"
+    },
+    {
+      "id": "HC-004",
+      "category": "healthcare",
+      "subcategory": "government_schemes",
+      "task": "perplexity",
+      "text": "ആയുഷ്മാൻ ഭാരത് യോജനയിൽ ഒരു കുടുംബത്തിന് വർഷത്തിൽ 5 ലക്ഷം രൂപ വരെ ചികിത്സ ലഭിക്കും.",
+      "language": "ml",
+      "notes": "Ayushman Bharat scheme in Malayalam"
+    },
+    {
+      "id": "HC-005",
+      "category": "healthcare",
+      "subcategory": "home_remedies",
+      "task": "next_token_quality",
+      "prompt": "सर्दी-खांसी में हल्दी वाला दूध पीने से",
+      "expected_style": "continuation about turmeric milk home remedy",
+      "language": "hi",
+      "notes": "Indian home remedy context"
+    },
+
+    {
+      "id": "SG-001",
+      "category": "script_generation",
+      "subcategory": "hindi_coherence",
+      "task": "next_token_quality",
+      "prompt": "भारत की स्वतंत्रता के बाद देश ने",
+      "expected_style": "coherent Hindi paragraph about post-independence India",
+      "language": "hi",
+      "notes": "Tests sustained Hindi generation"
+    },
+    {
+      "id": "SG-002",
+      "category": "script_generation",
+      "subcategory": "tamil_coherence",
+      "task": "next_token_quality",
+      "prompt": "தமிழ்நாட்டின் கலாச்சாரம் மிகவும் பழமையானது,",
+      "expected_style": "coherent Tamil continuation about Tamil Nadu culture",
+      "language": "ta",
+      "notes": "Tests sustained Tamil generation"
+    },
+    {
+      "id": "SG-003",
+      "category": "script_generation",
+      "subcategory": "bengali_coherence",
+      "task": "next_token_quality",
+      "prompt": "কলকাতা শহরের ইতিহাস অনেক পুরানো,",
+      "expected_style": "coherent Bengali continuation about Kolkata history",
+      "language": "bn",
+      "notes": "Tests sustained Bengali generation"
+    },
+    {
+      "id": "SG-004",
+      "category": "script_generation",
+      "subcategory": "telugu_coherence",
+      "task": "next_token_quality",
+      "prompt": "ఆంధ్రప్రదేశ్ రాజధాని అమరావతిలో అభివృద్ధి పనులు",
+      "expected_style": "coherent Telugu continuation about Amaravati development",
+      "language": "te",
+      "notes": "Tests sustained Telugu generation"
+    },
+    {
+      "id": "SG-005",
+      "category": "script_generation",
+      "subcategory": "gujarati_coherence",
+      "task": "next_token_quality",
+      "prompt": "ગુજરાતનો ગરબા નૃત્ય નવરાત્રી દરમિયાન",
+      "expected_style": "coherent Gujarati continuation about Garba during Navratri",
+      "language": "gu",
+      "notes": "Tests sustained Gujarati generation"
+    },
+    {
+      "id": "SG-006",
+      "category": "script_generation",
+      "subcategory": "kannada_coherence",
+      "task": "next_token_quality",
+      "prompt": "ಮೈಸೂರು ದಸರಾ ಹಬ್ಬ ಕರ್ನಾಟಕದ",
+      "expected_style": "coherent Kannada continuation about Mysuru Dasara",
+      "language": "kn",
+      "notes": "Tests sustained Kannada generation"
+    },
+    {
+      "id": "SG-007",
+      "category": "script_generation",
+      "subcategory": "marathi_coherence",
+      "task": "next_token_quality",
+      "prompt": "पुणे शहर हे महाराष्ट्राचे सांस्कृतिक केंद्र आहे,",
+      "expected_style": "coherent Marathi continuation about Pune culture",
+      "language": "mr",
+      "notes": "Tests sustained Marathi generation"
+    },
+    {
+      "id": "SG-008",
+      "category": "script_generation",
+      "subcategory": "malayalam_coherence",
+      "task": "next_token_quality",
+      "prompt": "കേരളത്തിലെ വിദ്യാഭ്യാസ നിലവാരം ഇന്ത്യയിൽ",
+      "expected_style": "coherent Malayalam continuation about Kerala education",
+      "language": "ml",
+      "notes": "Tests sustained Malayalam generation"
+    },
+    {
+      "id": "SG-009",
+      "category": "script_generation",
+      "subcategory": "odia_coherence",
+      "task": "next_token_quality",
+      "prompt": "ଓଡ଼ିଶାର ଜଗନ୍ନାଥ ମନ୍ଦିର ପୁରୀରେ ଅବସ୍ଥିତ,",
+      "expected_style": "coherent Odia continuation about Jagannath Temple",
+      "language": "or",
+      "notes": "Tests sustained Odia generation"
+    },
+    {
+      "id": "SG-010",
+      "category": "script_generation",
+      "subcategory": "punjabi_coherence",
+      "task": "next_token_quality",
+      "prompt": "ਅੰਮ੍ਰਿਤਸਰ ਦਾ ਹਰਿਮੰਦਰ ਸਾਹਿਬ ਸਿੱਖ ਧਰਮ ਦਾ",
+      "expected_style": "coherent Punjabi continuation about Golden Temple",
+      "language": "pa",
+      "notes": "Tests sustained Punjabi generation"
+    },
+
+    {
+      "id": "RB-001",
+      "category": "robustness",
+      "subcategory": "transliteration",
+      "task": "next_token_quality",
+      "prompt": "Mujhe ek accha restaurant chahiye jo",
+      "expected_style": "continuation understanding romanized Hindi",
+      "language": "hi-roman",
+      "notes": "Romanized Hindi (very common on Indian internet)"
+    },
+    {
+      "id": "RB-002",
+      "category": "robustness",
+      "subcategory": "transliteration",
+      "task": "next_token_quality",
+      "prompt": "Enaku oru nalla hotel venum, chennai la",
+      "expected_style": "continuation understanding romanized Tamil",
+      "language": "ta-roman",
+      "notes": "Romanized Tamil"
+    },
+    {
+      "id": "RB-003",
+      "category": "robustness",
+      "subcategory": "transliteration",
+      "task": "next_token_quality",
+      "prompt": "Ami khub bhalo khete pari, amar favourite",
+      "expected_style": "continuation understanding romanized Bengali",
+      "language": "bn-roman",
+      "notes": "Romanized Bengali"
+    },
+    {
+      "id": "RB-004",
+      "category": "robustness",
+      "subcategory": "mixed_script",
+      "task": "perplexity",
+      "text": "आज meeting में boss ने कहा कि हमें Q3 targets achieve करने हैं otherwise bonus नहीं मिलेगा।",
+      "language": "hi-en-mixed",
+      "notes": "Hindi text with English words in Devanagari context"
+    },
+    {
+      "id": "RB-005",
+      "category": "robustness",
+      "subcategory": "mixed_script",
+      "task": "perplexity",
+      "text": "Uber book karo, Connaught Place jaana hai, kitna time lagega?",
+      "language": "hi-roman-en",
+      "notes": "Romanized Hinglish with proper nouns"
+    },
+    {
+      "id": "RB-006",
+      "category": "robustness",
+      "subcategory": "abbreviations",
+      "task": "perplexity",
+      "text": "DM साहब ने SDM को आदेश दिया कि BDO और CDO मिलकर MGNREGA का काम जाँचें।",
+      "language": "hi",
+      "notes": "Indian bureaucratic abbreviations"
+    },
+    {
+      "id": "RB-007",
+      "category": "robustness",
+      "subcategory": "address_format",
+      "task": "perplexity",
+      "text": "पता: श्री राम कुमार, मकान नं. 42, गली नं. 7, मोहल्ला सदर बाज़ार, तहसील सदर, जिला लखनऊ, उत्तर प्रदेश - 226001",
+      "language": "hi",
+      "notes": "Indian address format with tehsil, mohalla structure"
+    },
+    {
+      "id": "RB-008",
+      "category": "robustness",
+      "subcategory": "social_media_style",
+      "task": "next_token_quality",
+      "prompt": "bhai sahab ye toh bahut hi mast cheez hai 🔥🔥 isko try karo",
+      "expected_style": "casual social media Hinglish continuation",
+      "language": "hi-roman-casual",
+      "notes": "Social media style romanized Hindi with emoji context"
+    },
+    {
+      "id": "RB-009",
+      "category": "robustness",
+      "subcategory": "honorifics",
+      "task": "perplexity",
+      "text": "श्रीमान जी, आपसे प्रार्थना है कि मेरे पुत्र के स्कूल स्थानांतरण प्रमाण पत्र हेतु कृपया आवश्यक कार्रवाई करें।",
+      "language": "hi",
+      "notes": "Formal Hindi with Indian honorifics and bureaucratic style"
+    },
+    {
+      "id": "RB-010",
+      "category": "robustness",
+      "subcategory": "multi_script_names",
+      "task": "perplexity",
+      "text": "Dr. अमित शर्मा ने AIIMS Delhi में Prof. Raghunath के साथ मिलकर एक नई research publish की।",
+      "language": "hi-en",
+      "notes": "Mixed script with names in both Devanagari and Latin"
+    },
+
+    {
+      "id": "SG-011",
+      "category": "script_generation",
+      "subcategory": "kannada_coherence",
+      "task": "next_token_quality",
+      "prompt": "ಬೆಂಗಳೂರು ನಗರವು ಭಾರತದ ಐಟಿ ರಾಜಧಾನಿ ಎಂದು ಪ್ರಸಿದ್ಧವಾಗಿದೆ,",
+      "expected_style": "coherent Kannada continuation about Bangalore as IT capital",
+      "language": "kn",
+      "notes": "Tests sustained Kannada generation about Bangalore tech"
+    },
+    {
+      "id": "SG-012",
+      "category": "script_generation",
+      "subcategory": "assamese_coherence",
+      "task": "next_token_quality",
+      "prompt": "অসমৰ বিহু উৎসৱ অসমীয়া সংস্কৃতিৰ এক অবিচ্ছেদ্য অংগ,",
+      "expected_style": "coherent Assamese continuation about Bihu festival",
+      "language": "as",
+      "notes": "Tests sustained Assamese generation about Bihu"
+    },
+    {
+      "id": "SG-013",
+      "category": "script_generation",
+      "subcategory": "assamese_coherence",
+      "task": "next_token_quality",
+      "prompt": "গুৱাহাটী অসমৰ সবাতোকৈ ডাঙৰ চহৰ আৰু ইয়াত",
+      "expected_style": "coherent Assamese continuation about Guwahati city",
+      "language": "as",
+      "notes": "Tests sustained Assamese generation about Guwahati"
+    },
+
+    {
+      "id": "CK-011",
+      "category": "cultural_knowledge",
+      "subcategory": "festivals",
+      "task": "perplexity",
+      "text": "মাঘ বিহুত অসমীয়া মানুহে মেজি জ্বলায় আৰু তিল পিঠা, লাৰু আদি খায়।",
+      "language": "as",
+      "notes": "Magh Bihu festival knowledge in Assamese"
+    },
+    {
+      "id": "CK-012",
+      "category": "cultural_knowledge",
+      "subcategory": "food",
+      "task": "next_token_quality",
+      "prompt": "অসমীয়া খাদ্যত মাছ আৰু ভাতৰ বিশেষ স্থান আছে,",
+      "expected_style": "continuation about Assamese cuisine, fish and rice culture",
+      "language": "as",
+      "notes": "Assamese food culture"
+    },
+
+    {
+      "id": "AG-008",
+      "category": "agriculture",
+      "subcategory": "tea_farming",
+      "task": "perplexity",
+      "text": "অসমৰ চাহ বাগিচাবোৰ পৃথিৱী বিখ্যাত, ইয়াত উৎপাদিত চাহ বিদেশলৈ ৰপ্তানি কৰা হয়।",
+      "language": "as",
+      "notes": "Assam tea plantation knowledge in Assamese"
+    },
+
+    {
+      "id": "NLU-011",
+      "category": "indic_nlu",
+      "subcategory": "comprehension",
+      "task": "perplexity",
+      "text": "ব্ৰহ্মপুত্ৰ নদীৰ বানপানীয়ে প্ৰতি বছৰ অসমৰ বহু জিলাত ক্ষতিসাধন কৰে।",
+      "language": "as",
+      "notes": "Brahmaputra flood context in Assamese"
+    },
+
+    {
+      "id": "RB-011",
+      "category": "robustness",
+      "subcategory": "transliteration",
+      "task": "next_token_quality",
+      "prompt": "Moi Guwahati ot thako, moar ghorot",
+      "expected_style": "continuation understanding romanized Assamese",
+      "language": "as-roman",
+      "notes": "Romanized Assamese"
+    }
+  ]
+}
